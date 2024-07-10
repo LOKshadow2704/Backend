@@ -14,10 +14,13 @@ COPY composer.json composer.lock ./
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install PHP dependencies
-RUN composer install
+#RUN composer install
 
-# Copy the rest of the application code to the working directory
-COPY . .
+# PHP Extension
+RUN docker-php-ext-install gettext intl pdo_mysql gd
+
+RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd
 
 # Expose the port the web server will run on
 EXPOSE 88
