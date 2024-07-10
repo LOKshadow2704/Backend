@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  web:
+    image: php:8.2-apache
+    container_name: php-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
+    networks:
+      - app-network
+
+  db:
+    image: mysql:5.7
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: goatgym
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.1.1
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - MYSQL_DATABASE=goatgym
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=rootpassword
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1    
