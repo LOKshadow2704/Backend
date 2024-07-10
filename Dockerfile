@@ -13,7 +13,7 @@ RUN apt-get update \
     && docker-php-ext-configure intl \
     && docker-php-ext-install gettext intl pdo_mysql gd
 
-COPY ./Backend /var/www/html
+COPY . /var/www/html
 
 # Thiết lập môi trường cho PHP
 ENV TZ=Asia/Ho_Chi_Minh

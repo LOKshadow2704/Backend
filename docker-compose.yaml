@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./Backend:/var/www/html 
+      - . :/var/www/html 
     networks:
       - app-network
 
