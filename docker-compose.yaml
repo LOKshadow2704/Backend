@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./www:/var/www/html
+      - ./www:/var/www/html   # Đảm bảo ./www tồn tại và chứa các file PHP của bạn
     networks:
       - app-network
 
@@ -23,15 +23,27 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:5.1.1
     restart: always
     ports:
-      - 8080:80
+      - 8081:80   # Sử dụng cổng khác cho phpMyAdmin để tránh xung đột
     environment:
-      - MYSQL_DATABASE=goatgym
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=rootpassword
-      - MYSQL_ALLOW_EMPTY_PASSWORD=1    
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: goatgym
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: rootpassword
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
