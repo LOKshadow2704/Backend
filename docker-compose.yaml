@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./www:/var/www/html   # Đảm bảo ./www tồn tại và chứa các file PHP của bạn
+      - ./Backend:/var/www/html   # Đảm bảo ./www tồn tại và chứa các file PHP của bạn
     networks:
       - app-network
 
