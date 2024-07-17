@@ -39,7 +39,7 @@ class model_order{
             ]
             );
             if($result){
-                return $connect->lastInsertId();
+                return intval($connect->lastInsertId());
             }else{
                 return false;
             }

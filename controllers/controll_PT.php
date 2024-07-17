@@ -11,14 +11,14 @@ class controll_PT{
                 echo json_encode($result);
             }else{
                 http_response_code(404);
-                echo json_encode(['error'=>'Lỗi']);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
     }
 
     public static function controll_getOne_personalTrainer(){
-        if($_SERVER['REQUEST_METHOD']=== 'GET'){
-            $data = json_decode(file_get_contents('php://input'),true);
+        if($_SERVER['REQUEST_METHOD'] === 'GET'){
+            
             $ptID = $_GET['IDHLV'];
             $pt = new model_pt();
             $result = $pt->get_One_personalTrainer($ptID);
@@ -26,9 +26,12 @@ class controll_PT{
                 http_response_code(200);
                 echo json_encode($result);
             }else{
-                http_response_code(404);
-                echo json_encode(['error'=>'Lỗi']);
+                http_response_code(403);
+                echo json_encode(['error'=> 'Không truy cập được dữ liệu']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -84,6 +87,9 @@ class controll_PT{
                     echo json_encode(['error'=>'Không thực hiện được hành động']);
                 }
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 }

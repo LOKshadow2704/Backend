@@ -21,6 +21,7 @@ class ComposerStaticInita7ecb06fb816cb2e18c273c6eebec94f
         'P' => 
         array (
             'Psr\\Cache\\' => 10,
+            'PayOS\\' => 6,
         ),
         'O' => 
         array (
@@ -50,6 +51,10 @@ class ComposerStaticInita7ecb06fb816cb2e18c273c6eebec94f
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
+        'PayOS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/payos/payos/src',
         ),
         'OpenApi\\' => 
         array (

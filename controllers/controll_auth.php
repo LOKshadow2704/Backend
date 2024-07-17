@@ -55,6 +55,9 @@ class controll_auth{
                 http_response_code(400);
                 echo json_encode(['error' => 'Kiểm tra lại thông tin']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
 
 
@@ -79,6 +82,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực 2']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -101,6 +107,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -142,6 +151,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -184,6 +196,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -210,6 +225,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -225,9 +243,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Tên đăng nhập đã tồn tại']);
             }
-        }else{ 
-            http_response_code(403);
-            echo json_encode(['error'=> 'Không thực hiện được yêu cầu']);
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -242,9 +260,9 @@ class controll_auth{
                 http_response_code(200);
                 echo json_encode(['warning'=> 'Chưa có người tập hôm nay']);
             }
-        }else{ 
-            http_response_code(403);
-            echo json_encode(['error'=> 'Không thực hiện được yêu cầu']);
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -259,9 +277,9 @@ class controll_auth{
                 http_response_code(200);
                 echo json_encode(['warning'=> 'Không thực hiện được hành động']);
             }
-        }else{ 
-            http_response_code(403);
-            echo json_encode(['error'=> 'Không thực hiện được yêu cầu']);
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -285,6 +303,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -309,6 +330,9 @@ class controll_auth{
                 http_response_code(403);
                 echo json_encode(['error'=> 'Lỗi xác thực']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 

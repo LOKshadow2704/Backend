@@ -13,6 +13,9 @@
                     http_response_code(404);
                     echo json_encode(['error'=>'Không thể lấy dữ liệu']);
                 }
+            }else{
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
 
@@ -70,8 +73,8 @@
                     echo json_encode(['error'=> 'Lỗi xác thực']);
                 }
             }else{
-            http_response_code(403);
-            echo json_encode(['error' => 'Lỗi không xác định']);
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
 
@@ -107,6 +110,9 @@
                         echo json_encode(['error' => 'Chưa đăng ký gói tập']);
                     }
                 }
+            }else{
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
 
@@ -153,8 +159,8 @@
                     echo json_encode(['error'=> 'Lỗi xác thực']);
                 }
             }else{
-            http_response_code(403);
-            echo json_encode(['error' => 'Lỗi không xác định']);
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
 
@@ -177,6 +183,9 @@
                         echo json_encode(['error' => 'Cập nhật không thành công']);
                     }
                 }
+            }else{
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
         

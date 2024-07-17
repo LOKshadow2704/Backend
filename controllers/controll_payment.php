@@ -2,7 +2,30 @@
     require_once(__DIR__ ."/../models/model_order.php");
     require_once(__DIR__ ."/../models/model_invoice_pack.php");
     require_once(__DIR__ ."/../models/model_invoice_pt.php");
+    use PayOS\PayOS;
     class Controll_payment{
+
+        public function create($info){
+            $payOSClientId = getenv('Client_ID');
+            $payOSApiKey = getenv('Api_Key');
+            $payOSChecksumKey = getenv('Checksum_Key');
+            $payOS = new PayOS($payOSClientId, $payOSApiKey, $payOSChecksumKey);
+
+            $YOUR_DOMAIN = getenv('host_order');
+
+            $data = [
+                "orderCode" => $info['IDDonHang'],
+                "amount" => $info['amount'],
+                "description" => "Thanh toán đơn hàng",
+                'buyerName' => $info['name'],
+                'buyerPhone' => $info['phone'],
+                "returnUrl" => $YOUR_DOMAIN . "?message=success",
+                "cancelUrl" => $YOUR_DOMAIN . "?message=canceled"
+            ];
+
+            $response = $payOS->createPaymentLink($data);
+            return $response['checkoutUrl'];
+        }
         public static function returnPayment(){
             if($_SERVER['REQUEST_METHOD'] === "GET"){
                 $vnp_HashSecret = "TALPOXXNXPJYNOGRZMWFZGAWWZUGOFRX";

@@ -15,6 +15,9 @@
                     http_response_code(404);
                     echo json_encode(['error' => 'Không thực hiện được yêu cầu']);
                    }
+            }else{
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
     }

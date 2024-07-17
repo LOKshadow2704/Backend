@@ -10,6 +10,7 @@ return array(
     'Symfony\\Component\\Yaml\\' => array($vendorDir . '/symfony/yaml'),
     'Symfony\\Component\\Finder\\' => array($vendorDir . '/symfony/finder'),
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
+    'PayOS\\' => array($vendorDir . '/payos/payos/src'),
     'OpenApi\\' => array($vendorDir . '/zircote/swagger-php/src'),
     'Doctrine\\Deprecations\\' => array($vendorDir . '/doctrine/deprecations/lib/Doctrine/Deprecations'),
     'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/src'),

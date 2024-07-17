@@ -21,6 +21,9 @@
                     http_response_code(403);
                     echo json_encode(['error'=> 'Lỗi xác thực']);
                 }
+            }else{
+                http_response_code(404);
+                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
             }
         }
 

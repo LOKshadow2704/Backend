@@ -1,6 +1,10 @@
-SetEnvIf Authorization .+ HTTP_AUTHORIZATION=$0
-SetEnv SHA_KEY "20042101_NguyenThanhLoc"
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+    SetEnvIf Authorization .+ HTTP_AUTHORIZATION=$0
+    SetEnv SHA_KEY "20042101_NguyenThanhLoc"
+    SetEnv Client_ID "44bccbee-fb2f-4086-8dbf-e4b3a1999e35"
+    SetEnv Api_Key "b1a06c86-a13a-4393-ab14-a1c0630ebe9b"
+    SetEnv Checksum_Key "0b846eeeca00a3212e1e42c7cd752f83a36bbd4ce150d45ffe56b71681e2f2d6"
+    SetEnv host_order "http://localhost:3000/Order"
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
