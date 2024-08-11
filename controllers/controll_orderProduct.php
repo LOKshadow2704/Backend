@@ -132,7 +132,7 @@ class controll_Order{
     }
 
     public static function getPurchaseOrder_unconfimred(){
-        if($_SERVER['REQUEST_METHOD']==='POST'){
+        if($_SERVER['REQUEST_METHOD']==='GET'){
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
             $Auth = new JWT();
