@@ -1,20 +1,23 @@
 <?php
-require_once(__DIR__ . '/../middlewares/JWT_Middleware.php');
 require_once(__DIR__ . '/../models/model_cart.php');
-require_once(__DIR__ . '/../models/model_auth.php');
-class controll_cart{
-    public static function controll_get_All_cart(){
+require_once(__DIR__ . '/control.php');
+class controll_cart extends Control{
+    protected $model_cart;
+
+    public function __construct(){
+        parent::__construct();
+        $this->model_cart = new model_cart();
+    }
+    public function controll_get_All_cart(){
         if($_SERVER['REQUEST_METHOD'] === "GET"){
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $verify = $this->jwt->verifyJWT($jwt);
             if($verify){
-                $username = $Auth->getUserName($jwt);
-                $user = new model_auth();
-                $userId = $user->getIDKhachhang($username);
-                $model_cart = new model_cart($userId);
-                $result = $model_cart->get_All_cart();
+                $username = $this->jwt->getUserName($jwt);
+                $userId = $this->modelAuth->getIDKhachhang($username);
+                $this->model_cart->userID = $userId;
+                $result = $this->model_cart->get_All_cart();
                 http_response_code(200);
                 echo json_encode($result);
             }else{
@@ -28,18 +31,16 @@ class controll_cart{
             
         }
 
-    public static function controll_AddtoCart(){
+    public function controll_AddtoCart(){
         if($_SERVER['REQUEST_METHOD'] === "POST"){
             $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $verify = $this->jwt->verifyJWT($jwt);
             $IDSaNPham = $data['IDSanPham'];
             if($verify){
-                $username = $Auth->getUserName($jwt);
-                $user = new model_auth();
-                $userId = $user->getIDKhachhang($username);
+                $username = $this->jwt->getUserName($jwt);
+                $userId = $this->modelAuth->getIDKhachhang($username);
                 $model_cart = new model_cart($userId);
                 $result = $model_cart->AddtoCart($IDSaNPham);
                 if($result){
@@ -64,12 +65,12 @@ class controll_cart{
             $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $this->jwt = new JWT();
+            $verify = $this->jwt->JWT_verify($jwt);
             $IDSaNPham = $data['IDSanPham'];
             if($verify){
-                $username = $Auth->getUserName($jwt);
-                $user = new model_auth();
+                $username = $this->jwt->getUserName($jwt);
+                
                 $userId = $user->getIDKhachhang($username);
                 $model_cart = new model_cart($userId);
                 $result = $model_cart->PlusCart($IDSaNPham , $userId);
@@ -93,12 +94,12 @@ class controll_cart{
             $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $this->jwt = new JWT();
+            $verify = $this->jwt->JWT_verify($jwt);
             $IDSaNPham = $data['IDSanPham'];
             if($verify){
-                $username = $Auth->getUserName($jwt);
-                $user = new model_auth();
+                $username = $this->jwt->getUserName($jwt);
+                
                 $userId = $user->getIDKhachhang($username);
                 $model_cart = new model_cart($userId);
                 $result = $model_cart->MinusCart($IDSaNPham , $userId);
@@ -117,24 +118,24 @@ class controll_cart{
         }
     }
 
-    public static function controll_DeleteCart(){
+    public function controll_DeleteCart(){
         if($_SERVER['REQUEST_METHOD'] === "DELETE"){
             $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $verify = $this->jwt->verifyJWT($jwt);
             $IDSaNPham = $data['IDSanPham'];
             if($verify){
-                $username = $Auth->getUserName($jwt);
-                $user = new model_auth();
-                $userId = $user->getIDKhachhang($username);
+                $username = $this->jwt->getUserName($jwt);
+                $userId = $this->modelAuth->getIDKhachhang($username);
                 $model_cart = new model_cart($userId);
                 $result = $model_cart->deleteItem($IDSaNPham , $userId);
                 if($result){
                     http_response_code(200);
+                    echo json_encode(['success'=> 'Xóa thành công']);
                 }else{
                     http_response_code(501);
+                    echo json_encode(['success'=> 'Xóa không thành công']);
                 }   
             }else{
                 http_response_code(401);

@@ -19,9 +19,11 @@ require_once(__DIR__.'/../models/model_rt.php');
 class JWT
 {
     private $model_rt;
+    private $jwt;
 
-    public function __construct(){
+    public function __construct($accessToken = null){
         $this->model_rt = new RefreshTokenModel();
+        $this->jwt = $accessToken;
     }
 
     public function generateJWT(array $payload): string //Access Token JWT
@@ -38,7 +40,7 @@ class JWT
     {
         list($encodedHeader, $encodedPayload, $encodedSignature) = explode('.', $jwt);
         $header = base64_decode($encodedHeader);
-        $payload = base64_decode($encodedPayload);
+        $payload = json_decode(base64_decode($encodedPayload) ,true);
         $expectedSignature = $this->base64UrlEncode(hash_hmac('sha256', "$encodedHeader.$encodedPayload", $_SESSION["csrf_token"][$payload['username']], true));
 
         if (!hash_equals($encodedSignature, $expectedSignature)) {
@@ -47,8 +49,16 @@ class JWT
         return true;
     }
 
+    public function getRole(){
+        list($encodedHeader, $encodedPayload) = explode('.', $this->jwt);
+        $payload = base64_decode($encodedPayload);
+        $payloadArray = json_decode($payload, true);
+        return $payloadArray['role'] ?? null;
+    }
+
     public function createRefreshToken(string $username , $agent): ?string
     {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $randomString = bin2hex(random_bytes(32));
         $refreshToken = hash('sha256', $randomString);
         $newExpiryDate = date('Y-m-d H:i:s', time() + 3600 * 24 * 30);

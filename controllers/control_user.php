@@ -1,10 +1,7 @@
 <?php
-
-require_once(__DIR__ . '/../models/model_auth.php');
-require_once(__DIR__ . '/../middlewares/JWT_Middleware.php');
-
+require_once(__DIR__ . '/control.php');
 // Thực hiện cài đặt, cập nhật tài khoản và đăng ký tài khoản
-class UserController
+class UserController extends Control
 {
     public static function getAccountInfo()
     {
@@ -153,24 +150,26 @@ class UserController
         }
     }
 
-    public static function signup()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    public function signup()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        try {
             $data = json_decode(file_get_contents("php://input"), true);
-            $user = new model_auth();
-            $result = $user->Signup($data);
+            $result = $this->modelAuth->Signup($data);
             if ($result) {
                 http_response_code(200);
                 echo json_encode(['success' => 'Đăng ký thành công']);
-            } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Tên đăng nhập đã tồn tại']);
-            }
-        } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            } 
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['error' => $e->getMessage()]); 
         }
+    } else { 
+        http_response_code(404);
+        echo json_encode(['error' => 'Đường dẫn không tồn tại']);
     }
+}
+
 
     public static function get_user_training()
     {

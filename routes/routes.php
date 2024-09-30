@@ -17,9 +17,9 @@ $routes = [
     'account' => [
         '/Backend/signup' => function () {
             $userController = new UserController();
-            $userController->signup();
+            $userController->signup(); //---------------Đã chỉnh sửa
         },
-        '/Backend/login' => function () {
+        '/Backend/login' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();
             $authController->login();
         },
@@ -27,7 +27,7 @@ $routes = [
             $authController = new AuthController();
             $authController->login(); //Chưa sửa 
         },
-        '/Backend/logout/' => function () {
+        '/Backend/logout' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();
             $authController->logout();
         },
@@ -67,15 +67,15 @@ $routes = [
 
     // Product Routes
     'product' => [
-        '/Backend/shop' => function () {
+        '/Backend/products' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
             $productController->controll_getAll_products();
         },
-        '/Backend/shop/manage/' => function () {
+        '/Backend/products/manager' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
             $productController->controll_getAll_products_byManeger();
         },
-        '/Backend/product' => function () {
+        '/Backend/products/info' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
             $productController->controll_getOne_products();
         },
@@ -95,6 +95,7 @@ $routes = [
             $productController = new controll_product();
             $productController->controll_delete_products();
         },
+        //Thêm sản phẩm liên quan
     ],
 
     // PT (Personal Trainer) Routes
@@ -139,15 +140,15 @@ $routes = [
 
     // Cart Routes
     'cart' => [
-        '/Backend/cart/' => function () {
+        '/Backend/cart' => function () { //---------------Đã chỉnh sửa
             $cartController = new controll_cart();
             $cartController->controll_get_All_cart();
         },
-        '/Backend/cart/add' => function () {
+        '/Backend/cart/add' => function () { //---------------Đã chỉnh sửa
             $cartController = new controll_cart();
             $cartController->controll_AddtoCart();
         },
-        '/Backend/cart/updateQuanPlus' => function () {
+        '/Backend/cart/updateQuanPlus' => function () { 
             $cartController = new controll_cart();
             $cartController->controll_PlusCart();
         },
@@ -155,7 +156,7 @@ $routes = [
             $cartController = new controll_cart();
             $cartController->controll_MinusCart();
         },
-        '/Backend/cart/delete' => function () {
+        '/Backend/cart/delete' => function () { //---------------Đã chỉnh sửa
             $cartController = new controll_cart();
             $cartController->controll_DeleteCart();
         },
