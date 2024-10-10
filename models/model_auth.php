@@ -214,6 +214,24 @@ class model_auth{
         }
         
     }
+	
+	public function Admin_Delete_Account($TenDangNhap){
+        $connect = $this ->db -> connect_db();
+        if($connect){
+            $query = 'DELETE FROM TaiKhoan WHERE TenDangNhap = ? ';
+            $stmt = $connect ->prepare($query);
+            $result = $stmt -> execute([$TenDangNhap]);
+            if($result){
+                $this->db->disconnect_db( $connect );
+                return $result;
+            }else{
+                $this->db->disconnect_db( $connect );
+                return false;
+            }
+        }else{
+            return  false;
+        }
+    }
 
     public function login($username, $password){
         return $this->ExeLogin($username, $password);
@@ -238,7 +256,7 @@ class model_auth{
     }
 
     public function updateUserInfo($update_data, $username){
-        return $this->ExeUpdateUserInfo($update_data, $username,);
+        return $this->ExeUpdateUserInfo($update_data, $username);
     }
     
     public function updateUserAvt($link, $username){

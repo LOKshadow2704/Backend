@@ -2,6 +2,7 @@
     require_once(__DIR__ . "/../models/model_gympack.php");
     require_once(__DIR__ . "/../models/model_invoice_pack.php");
     class controll_gympack{
+		
         public static function controll_get_All_gympack(){
             if($_SERVER['REQUEST_METHOD']==="GET"){
                 $gympack = new model_gympack();
@@ -189,4 +190,78 @@
             }
         }
         
+		public static function controll_add_gympack() {
+    if ($_SERVER['REQUEST_METHOD'] === "POST") {
+        $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+        $jwt = trim(str_replace('Bearer ', '', $jwt));
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        // Xác thực
+        $Auth = new JWT();
+        $verify = $Auth->JWT_verify($jwt);
+        
+        if ($verify) {
+            // Kiểm tra dữ liệu đầu vào
+            if (isset($data['TenGoiTap']) && isset($data['ThoiHan']) && isset($data['Gia'])) {
+                $gympack = new model_gympack();
+                $result = $gympack->add_Pack($data);
+                
+                if ($result) {
+                    http_response_code(200); // Created
+                    echo json_encode(['success' => 'Gói tập đã được thêm thành công!']);
+                } else {
+                    http_response_code(500); // Internal Server Error
+                    echo json_encode(['error' => 'Không thể thêm gói tập.']);
+                }
+            } else {
+                http_response_code(400); // Bad Request
+                echo json_encode(['error' => 'Dữ liệu đầu vào không hợp lệ.']);
+            }
+        } else {
+            http_response_code(403); // Forbidden
+            echo json_encode(['error' => 'Lỗi xác thực.']);
+        }
+    } else {
+        http_response_code(404); // Not Found
+        echo json_encode(['error' => 'Đường dẫn không tồn tại.']);
     }
+}
+
+		public static function controll_delete_gympack() {
+    if ($_SERVER['REQUEST_METHOD'] === "DELETE") {
+        $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+        $jwt = trim(str_replace('Bearer ', '', $jwt));
+        
+        // Xác thực
+        $Auth = new JWT();
+        $verify = $Auth->JWT_verify($jwt);
+        
+        if ($verify) {
+            // Lấy ID gói tập từ request
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (isset($data['IDGoiTap'])) {
+                $gympack = new model_gympack();
+                $result = $gympack->delete_Pack($data['IDGoiTap']);
+                
+                if ($result) {
+                    http_response_code(200); // OK
+                    echo json_encode(['success' => 'Gói tập đã được xóa thành công!']);
+                } else {
+                    http_response_code(500); // Internal Server Error
+                    echo json_encode(['error' => 'Không thể xóa gói tập.']);
+                }
+            } else {
+                http_response_code(400); // Bad Request
+                echo json_encode(['error' => 'ID gói tập không hợp lệ.']);
+            }
+        } else {
+            http_response_code(403); // Forbidden
+            echo json_encode(['error' => 'Lỗi xác thực.']);
+        }
+    } else {
+        http_response_code(404); // Not Found
+        echo json_encode(['error' => 'Đường dẫn không tồn tại.']);
+    }
+}
+    
+	}

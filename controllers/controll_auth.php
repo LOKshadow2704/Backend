@@ -336,4 +336,33 @@ class controll_auth{
         }
     }
 
+ public static function Delete_Account_ByAdmin(){
+        if($_SERVER['REQUEST_METHOD'] === "DELETE"){
+            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+            $jwt = trim(str_replace('Bearer ','', $jwt));
+            $data = json_decode(file_get_contents("php://input"), true);
+			//Xác thực
+            $Auth =  new JWT;
+            $verify = $Auth->JWT_verify($jwt);
+            if($verify){
+                $user = new model_auth();
+                $result = $user->Admin_Delete_Account($data["TenDangNhap"]);
+                if($result){
+                    http_response_code(200);
+                    echo json_encode(['success' => 'Xóa thành công']);
+                    
+                }else{
+                    http_response_code(404);
+                    echo json_encode(['error' => 'Xóa không thành công']);
+                }
+            }else{
+                http_response_code(403);
+                echo json_encode(['error'=> 'Lỗi xác thực']);
+            }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
+        }
+    }
+
 }

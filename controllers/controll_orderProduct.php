@@ -7,7 +7,7 @@ require_once(__DIR__ . "/../models/model_auth.php");
 require_once(__DIR__ . "/../models/model_orderInfo.php");
 require_once(__DIR__ . "/../models/model_warehouse.php");
 require_once(__DIR__ . "/../models/model_cart.php");
-class controll_Order{
+class controll_orderProduct{
 
     public function check_conditions($products){
         $shop = new model_product();
@@ -31,7 +31,7 @@ class controll_Order{
             $Auth =  new JWT();
             $verify = $Auth->JWT_verify($jwt);
             if($verify){
-                $conditions = new controll_Order();
+                $conditions = new controll_orderProduct();
                 $check_conditions = $conditions->check_conditions($data["products"]);
                 if(!$check_conditions){
                     http_response_code(403);
@@ -132,7 +132,7 @@ class controll_Order{
     }
 
     public static function getPurchaseOrder_unconfimred(){
-        if($_SERVER['REQUEST_METHOD']==='GET'){
+        if($_SERVER['REQUEST_METHOD']==='POST'){
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ','', $jwt));
             $Auth = new JWT();

@@ -10,8 +10,10 @@ require_once(__DIR__ . '/../controllers/controll_orderProduct.php');
 require_once(__DIR__ . '/../controllers/controll_payment.php');
 require_once(__DIR__ . '/../controllers/controll_homecontent.php');
 require_once(__DIR__ . '/../controllers/controll_checkin.php');
-
-
+require_once(__DIR__ . '/../controllers/controll_invoicePackgym.php');
+require_once(__DIR__ . '/../controllers/controll_category_product.php');
+require_once(__DIR__ . '/../controllers/controll_employee.php');
+require_once(__DIR__ . '/../controllers/controll_invoice_pt.php');
 
 $routes = [
     //Account
@@ -25,6 +27,7 @@ $routes = [
     '/Backend/user/checkin'=>function(){ controll_auth::get_user_training();},
     '/Backend/admin/getAllAccount'=>function(){ controll_auth::get_Account();},//
     '/Backend/admin/update'=>function(){ controll_auth::Update_Account_ByAdmin();},
+	'/Backend/admin/delete'=>function(){ controll_auth::Delete_Account_ByAdmin();},
     //product
     '/Backend/shop'=> function(){ controll_product::controll_getAll_products(); },
     '/Backend/shop/manege/'=> function(){ controll_product::controll_getAll_products_byManeger(); },
@@ -43,6 +46,8 @@ $routes = [
     '/Backend/order-gympack'=> function(){ controll_gympack::controll_Register(); },
     '/Backend/PackageGym/UserInfo'=> function(){ controll_gympack::control_get_PackByUser(); }, //
     '/Backend/gympack/registerByEmployee'=> function(){ controll_gympack::control_Register_PackByEmployee(); },
+	'/Backend/gympack/add'=>function(){ controll_gympack::controll_add_gympack(); },
+	'/Backend/gympack/delete'=> function(){ controll_gympack::controll_delete_gympack(); },
     //Cart
     '/Backend/cart/'=> function(){controll_cart::controll_get_All_cart();},//
     '/Backend/cart/add'=> function(){controll_cart::controll_AddtoCart();},//
@@ -50,10 +55,10 @@ $routes = [
     '/Backend/cart/updateQuanMinus' =>function(){controll_cart::controll_MinusCart();},//
     '/Backend/cart/delete' =>function(){controll_cart::controll_DeleteCart();},//
     //Order-Product-Purchase
-    '/Backend/order'=> function(){ controll_Order::controll_ExeOrder(); },
-    '/Backend/PurchaseOrder'=>function(){ controll_Order::getPurchaseOrder();},//
-    '/Backend/PurchaseOrder/unconfimred'=>function(){ controll_Order::getPurchaseOrder_unconfimred();},//
-    '/Backend/PurchaseOrder/confirm'=>function(){ controll_Order::Control_PurchaseOrder_confirm();},
+    '/Backend/order'=> function(){ controll_orderProduct::controll_ExeOrder(); },
+    '/Backend/PurchaseOrder'=>function(){ controll_orderProduct::getPurchaseOrder();},//
+    '/Backend/PurchaseOrder/unconfimred'=>function(){ controll_orderProduct::getPurchaseOrder_unconfimred();},//
+    '/Backend/PurchaseOrder/confirm'=>function(){ controll_orderProduct::Control_PurchaseOrder_confirm();},
     //Payment
     '/Backend/returnPayment'=>function(){ Controll_payment::returnPayment();},
     //Home
@@ -61,9 +66,22 @@ $routes = [
     //Employee
     '/Backend/employee/working'=>function(){ controll_auth::get_Employee_Working();},
     '/Backend/employee/statistical'=>function(){ controll_checkin::get_statistical();},//
-
-    
-    
+	//Order-GymPack
+	'/Backend/order-gympack/'=> function(){controll_invoicePackgym::controll_get_All_invoice_packgym();},
+	'/Backend/order-gympack/update'=> function(){controll_invoicePackgym::controll_update_invoice_status();},
+    '/Backend/order-gympack/delete'=> function(){controll_invoicePackgym::controll_delete_invoice_packgym();},
+    //Category_Products
+	'/Backend/category_product/'=> function(){ controll_category_product::controll_getAll_category_products(); },
+	'/Backend/category_product/update'=> function(){ controll_category_product::controll_update_category_product(); },
+	'/Backend/category_product/delete'=> function(){ controll_category_product::controll_delete_category_product(); },
+	'/Backend/category_product/add'=> function(){ controll_category_product::controll_add_category_product(); },
+	//Employee
+	'/Backend/employee/'=> function(){ controll_employee::controll_get_all_employee_with_roles(); },
+	'/Backend/employee/update'=> function(){ controll_employee::controll_update_employee_info(); },
+	'/Backend/employee/delete'=> function(){ controll_employee::controll_delete_employee_info(); },
+    //Invoice_PT
+    '/Backend/Invoice_PT/UserInfo'=> function(){ controll_invoice_pt::control_get_ptByUser(); },
+	'/Backend/Invoice_PT/Owner'=> function(){ controll_invoice_pt::control_get_pt(); }, 
 ];
 
 // function handleRequest($url) {
