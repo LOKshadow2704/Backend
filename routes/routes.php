@@ -16,11 +16,11 @@ $routes = [
     // Account Routes
       // Account Routes
       'account' => [
-        '/Backend/signup' => function () {
+        '/Backend/signup' => function () { //---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->signup();
         },
-        '/Backend/login' => function () {
+        '/Backend/login' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();
             $authController->login();
         },
@@ -28,7 +28,7 @@ $routes = [
             $authController = new AuthController();
             $authController->login(); // Chưa sửa
         },
-        '/Backend/logout' => function () {
+        '/Backend/logout' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();
             $authController->logout();
         },

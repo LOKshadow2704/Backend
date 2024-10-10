@@ -47,11 +47,11 @@ class RefreshTokenModel
 
 
 
-    public function getTokenByUsername($username)
+    public function getToken($username , $agent)
     {
-        $sql = "SELECT * FROM refresh_tokens WHERE TenDangNhap = :username AND revoked = FALSE AND expires_at > NOW()";
+        $sql = "SELECT * FROM refresh_tokens WHERE TenDangNhap = :username AND agent = :agent";
         $stmt = $this->connect->prepare($sql);
-        $stmt->execute([':username' => $username]);
+        $stmt->execute([':username' => $username , 'agent' => $agent]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

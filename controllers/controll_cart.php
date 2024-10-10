@@ -14,12 +14,6 @@ class controll_cart extends Control
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            if (session_status() == PHP_SESSION_NONE) {
-                if (isset($_SERVER['HTTP_PHPSESSID'])) {
-                    session_id($_SERVER['HTTP_PHPSESSID']); // Thiết lập session_id dựa trên HTTP_PHPSESSID
-                }
-                session_start();
-            }
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             $agent = "";
             if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
@@ -27,7 +21,8 @@ class controll_cart extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
+            $refresh_token = $_SERVER['HTTP_REFRESH_TOKEN'] ?? '';
+            $verify = $this->jwt->verifyJWT($jwt, $agent , $refresh_token);
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);
                 $userId = $this->modelAuth->getIDKhachhang($username);
