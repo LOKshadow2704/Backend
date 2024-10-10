@@ -14,46 +14,51 @@ require_once(__DIR__ . '/../controllers/control_user.php');
 
 $routes = [
     // Account Routes
-    'account' => [
+      // Account Routes
+      'account' => [
         '/Backend/signup' => function () {
             $userController = new UserController();
-            $userController->signup(); //---------------Đã chỉnh sửa
+            $userController->signup();
         },
-        '/Backend/login' => function () { //---------------Đã chỉnh sửa
+        '/Backend/login' => function () {
             $authController = new AuthController();
             $authController->login();
         },
         '/Backend/login/refresh-token' => function () {
             $authController = new AuthController();
-            $authController->login(); //Chưa sửa 
+            $authController->login(); // Chưa sửa
         },
-        '/Backend/logout' => function () { //---------------Đã chỉnh sửa
+        '/Backend/logout' => function () {
             $authController = new AuthController();
             $authController->logout();
         },
-        '/Backend/updateUser' => function () {
-            $authController = new UserController();
-            $authController->Update_User();
+    ],
+
+    // User Routes (Tách từ Account Routes)
+    'user' => [
+        '/Backend/user/update' => function () {
+            $userController = new UserController();
+            $userController->Update_User();
         },
-        '/Backend/updatePassword' => function () {
-            $authController = new UserController();
-            $authController->Update_Password();
+        '/Backend/user/updatePassword' => function () {
+            $userController = new UserController();
+            $userController->Update_Password();
         },
-        '/Backend/updateAvt' => function () {
-            $authController = new UserController();
-            $authController->Update_Avt();
+        '/Backend/user/updateAvt' => function () {
+            $userController = new UserController();
+            $userController->Update_Avt();
         },
         '/Backend/getAccountInfo' => function () {
-            $authController = new UserController();
-            $authController->getAccountInfo();
+            $userController = new UserController();
+            $userController->getAccountInfo();
         },
         '/Backend/user/checkin' => function () {
-            $authController = new UserController();
-            $authController->get_user_training();
+            $userController = new UserController();
+            $userController->get_user_training();
         },
         '/Backend/admin/getAllAccount' => function () {
-            $authController = new UserController();
-            $authController->get_Account();
+            $userController = new UserController();
+            $userController->get_Account();
         },
         '/Backend/admin/update' => function () {
             $authController = new AuthController();
@@ -100,7 +105,7 @@ $routes = [
 
     // PT (Personal Trainer) Routes
     'pt' => [
-        '/Backend/PT/' => function () {
+        '/Backend/PT' => function () {
             $ptController = new controll_PT();
             $ptController->controll_getAll_PT();
         },
@@ -116,7 +121,7 @@ $routes = [
 
     // Gym Package Routes
     'gympack' => [
-        '/Backend/gympack/' => function () {
+        '/Backend/gympack' => function () {
             $gympackController = new controll_gympack();
             $gympackController->controll_get_All_gympack();
         },
@@ -164,7 +169,7 @@ $routes = [
 
     // Order Product Routes
     'order' => [
-        '/Backend/order' => function () {
+        '/Backend/order' => function () { //---------------Đã chỉnh sửa
             $orderController = new controll_Order();
             $orderController->controll_ExeOrder();
         },

@@ -8,7 +8,7 @@
         public function get_All_pt(){
             $connect = $this -> db ->connect_db();
             if($connect){
-                $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang FROM khachhang as k inner join hlv as p on p.IDHLV = k.IDHLV left join taikhoan as c on c.TenDangNhap = k.TenDangNhap WHERE k.IDHLV IS NOT NULL' ;
+                $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.ChungChi	FROM khachhang as k inner join hlv as p on p.IDHLV = k.IDHLV left join taikhoan as c on c.TenDangNhap = k.TenDangNhap WHERE k.IDHLV IS NOT NULL' ;
                 $stmt = $connect->prepare(  $query );
                 $stmt->execute();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

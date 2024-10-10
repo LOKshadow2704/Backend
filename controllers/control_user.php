@@ -10,7 +10,7 @@ class UserController extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $username = $Auth->getUserName($jwt);
                 $user = new model_auth();
@@ -36,7 +36,7 @@ class UserController extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $username = $Auth->getUserName($jwt);
@@ -81,7 +81,7 @@ class UserController extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $username = $Auth->getUserName($jwt);
@@ -127,7 +127,7 @@ class UserController extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $data = json_decode(file_get_contents("php://input"), true);
                 $username = $Auth->getUserName($jwt);
@@ -214,7 +214,7 @@ class UserController extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $user = new model_auth();
                 $result = $user->All_Account();
@@ -242,7 +242,7 @@ class UserController extends Control
             $data = json_decode(file_get_contents("php://input"), true);
             //Xác thực
             $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
+            $verify = $Auth->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
             if ($verify) {
                 $user = new model_auth();
                 $result = $user->Admin_Update_Account($data);

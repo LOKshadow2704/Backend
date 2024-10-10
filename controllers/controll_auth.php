@@ -1,5 +1,4 @@
 <?php
-
 require_once(__DIR__ . '/control.php');
 
 //  Xử lý các logic xác thực và phân quyền và tài khoản, thực hiện quản lý phiên làm việc với tài khoản
@@ -13,18 +12,57 @@ class AuthController extends Control
             $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
-
         $data = json_decode(file_get_contents('php://input'), true);
         $username = $data['username'] ?? '';
         $password = $data['password'] ?? '';
-
         $result = $this->modelAuth->login($username, $password);
         if ($result) {
-            $this->createSession($username, $_SERVER['HTTP_USER_AGENT']);
-            $this->sendResponse(200, [
-                'message' => 'Đăng nhập thành công',
-                'user' => $this->modelAuth->AccountInfo($username)
-            ]);
+            //Kiểm tra phiên làm việc
+            $existingSession = $this->modelAuth->checkPHPSESSID($username);
+            if (!empty($existingSession) && !is_null($existingSession[0]['phpsessid'])) {
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_write_close();
+                }
+                session_id($existingSession[0]['phpsessid']);
+            } else {
+                // Trường hợp không có PHPSESSID trong cơ sở dữ liệu
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_destroy(); 
+                }
+                session_start();
+                session_regenerate_id(true); 
+                $this->modelAuth->savePHPSESSID($username , session_id());
+            }
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+             if ($_SERVER['HTTP_USER_AGENT'] === 'MOBILE_GOATFITNESS') {
+                $csrf = $this->jwt->generateCSRFToken();
+                if (!isset($_SESSION["csrf_token"])) {
+                    $_SESSION["csrf_token"] = [];
+                }
+                if (!isset($_SESSION["csrf_token"][$username]) || !is_array($_SESSION["csrf_token"][$username])) {
+                    $_SESSION["csrf_token"][$username] = [];
+                }
+                $_SESSION["csrf_token"][$username][$_SERVER['HTTP_USER_AGENT']] = $csrf;
+                $payload = $this->createPayload($username);
+                $token = $this->jwt->generateJWT($payload, $_SERVER['HTTP_USER_AGENT']);
+                $refreshToken = $this->jwt->createRefreshToken($username, 'MOBILE');
+                $this->sendResponse(200, [
+                    'message' => 'Đăng nhập thành công',
+                    'access_token' => $token,
+                    'refresh_token' => $refreshToken,
+                    'phpsessid' => session_id(),
+                    'user' => $this->modelAuth->AccountInfo($username),
+                ]);
+            }else{
+                $this->createSession($username);
+                $this->sendResponse(200, [
+                    'message' => 'Đăng nhập thành công',
+                    'user' => $this->modelAuth->AccountInfo($username)
+                ]);
+                // MOBILE
+            }
         } else {
             $this->sendResponse(400, ['error' => 'Kiểm tra lại thông tin']);
         }
@@ -59,17 +97,17 @@ class AuthController extends Control
             return;
         }
         $jwt = $this->getJWTFromRequest();
-        if(!$jwt){
+        if (!$jwt) {
             $this->sendResponse(400, ['error' => ' Yêu cầu không hợp lệ.']);
             return;
         }
-        // if ($jwt && $this->jwt->verifyJWT($jwt)) {
-        //     $username = $this->jwt->getUserName($jwt);
-        //     $this->clearSession($username);
-        //     $this->sendResponse(200, ['message' => 'Đăng xuất thành công']);
-        // } else {
-        //     $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
-        // }
+        if ($jwt && $this->jwt->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT'])) {
+            $username = $this->jwt->getUserName($jwt);
+            $this->clearSession($username);
+            $this->sendResponse(200, ['message' => 'Đăng xuất thành công']);
+        } else {
+            $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+        }
     }
 
     public function refreshToken()

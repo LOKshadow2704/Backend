@@ -54,7 +54,7 @@ class model_product{
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if($result){
                 $this->db1->disconnect_db( $connect );
-                return $result;
+                return $result[0];
             }else{
                 $this->db1->disconnect_db( $connect );
                 return false;

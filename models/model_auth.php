@@ -153,7 +153,7 @@ class model_auth
             }
             $sha_key = getenv('SHA_KEY');
             $hash_PW = hash_hmac('sha256', $data["password"], $sha_key);
-            $query = "INSERT INTO TaiKhoan VALUE(? ,? , 3 , ? ,? ,? ,? , 0 ,'https://i.imgur.com/2MUWzRp.jpg')";
+            $query = "INSERT INTO TaiKhoan VALUE(? ,?, null , 3 , ? ,? ,? ,? , 0 ,'https://i.imgur.com/2MUWzRp.jpg')";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$data["username"], $hash_PW, $data["fullname"], $data["address"], $data["email"], $data["phone"]]);
             if (!$result) {
@@ -230,12 +230,32 @@ class model_auth
 
     }
 
-
-
     public function getIDKhachhang($username)
     {
         $id = $this->KhachHang($username);
         return $id['IDKhachHang'];
+    }
+
+    public function checkPHPSESSID($username){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT phpsessid FROM TaiKhoan WHERE TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
+    }
+
+    public function savePHPSESSID($username, $phpSessionId){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "UPDATE TaiKhoan SET phpsessid = ? WHERE TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$phpSessionId , $username]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
     }
 
 

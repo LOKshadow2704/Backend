@@ -11,18 +11,22 @@ class Control
         $this->modelAuth = new model_auth();
         $this->jwt = new JWT($accessToken);
     }
-    protected function createSession($username, $agent)
+    protected function createSession($username)
     {
         $newRefreshToken = $this->jwt->createRefreshToken($username, "WEB");
         $csrf = $this->jwt->generateCSRFToken();
-        $_SESSION["csrf_token"][$username] = $csrf;
+        if (!isset($_SESSION["csrf_token"])) {
+            $_SESSION["csrf_token"] = [];
+        }
+        if (!isset($_SESSION["csrf_token"][$username]) || !is_array($_SESSION["csrf_token"][$username])) {
+            $_SESSION["csrf_token"][$username] = []; // Khởi tạo mảng cho từng username
+        }
+        $_SESSION["csrf_token"][$username]["WEB"] = $csrf;
         $payload = $this->createPayload($username);
-        $token = $this->jwt->generateJWT($payload);
-        // if ($agent == 'WEB' || $agent == 'PostmanRuntime/7.42.0') {
-            setcookie("jwt", $token, time() + 36000, "/" );
-            setcookie("refresh_token", $newRefreshToken, time() + 86400 * 30, "/");
-            setcookie("PHPSESSID", session_id(), time() + 36000, "/");
-        // }
+        $token = $this->jwt->generateJWT($payload , "WEB");
+        setcookie("jwt", $token, time() + 36000, "/");
+        setcookie("refresh_token", $newRefreshToken, time() + 86400 * 30, "/");
+        setcookie("PHPSESSID", session_id(), time() + 36000, "/");
     }
 
     protected function clearSession($username)
@@ -51,14 +55,12 @@ class Control
     {
         $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
         $jwt = trim(str_replace('Bearer ', '', $authHeader));
-        if(!empty($jwt)){
+        if (empty($jwt)) {
             return false;
-        }
-        else 
-        {
+        } else {
             return $jwt;
         }
-        
+
     }
 
     protected function sendResponse($statusCode, $data)
@@ -84,8 +86,15 @@ class Control
         return isset($_SESSION["csrf_token"][$username]) && $_SESSION["csrf_token"][$username] === $csrfToken;
     }
 
-    protected function error__404($message , $data){
-        
+    protected function setSessionID($username)
+    {
+        $Session = $this->modelAuth->checkPHPSESSID($username);
+        if (!empty($Session) && !is_null($Session[0]['phpsessid'])) {
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+            session_id($Session[0]['phpsessid']);
+        }
     }
 
 }

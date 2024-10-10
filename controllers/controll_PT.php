@@ -2,26 +2,32 @@
 require_once(__DIR__ . "/../models/model_PT.php");
 require_once(__DIR__ . "/../models/model_invoice_pt.php");
 class controll_PT{
-    public static function controll_getAll_PT() {
+    private $pt;
+
+    public function __construct(){
+        $this->pt = new model_pt();
+    }
+    public  function controll_getAll_PT() {
         if($_SERVER['REQUEST_METHOD']==="GET"){
-            $pt = new model_pt();
-            $result = $pt->get_All_pt();
+            $result = $this->pt->get_All_pt();
             if($result){
                 http_response_code(200);
                 echo json_encode($result);
             }else{
                 http_response_code(404);
-                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
+                echo json_encode(['error'=> 'Không tìm thấy dữ liệu']);
             }
+        }else{
+            http_response_code(404);
+            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
         }
     }
 
-    public static function controll_getOne_personalTrainer(){
+    public  function controll_getOne_personalTrainer(){
         if($_SERVER['REQUEST_METHOD'] === 'GET'){
             
             $ptID = $_GET['IDHLV'];
-            $pt = new model_pt();
-            $result = $pt->get_One_personalTrainer($ptID);
+            $result = $this->pt->get_One_personalTrainer($ptID);
             if($result){
                 http_response_code(200);
                 echo json_encode($result);

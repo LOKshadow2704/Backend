@@ -36,7 +36,6 @@
                         $inputData[$key] = $value;
                     }
                 }
-                
                 unset($inputData['vnp_SecureHash']);
                 ksort($inputData);
                 $i = 0;

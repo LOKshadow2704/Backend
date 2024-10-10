@@ -36,7 +36,13 @@ class controll_product extends Control
             $result = $this->model_products->get_All_Products_byManege();
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $verify = $this->jwt->verifyJWT($jwt);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
             $role = $this->jwt->getRole();
             if ($verify && ($role == "1" || $role =="2") ) {
                 if ($result) {
