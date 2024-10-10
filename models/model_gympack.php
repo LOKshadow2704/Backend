@@ -77,4 +77,40 @@
                 }
             }
         }
+		public function add_Pack($data) {
+    $connect = $this->db->connect_db();
+    if ($connect) {
+        $query = 'INSERT INTO goitap (TenGoiTap, ThoiHan, Gia) VALUES (?, ?, ?)';
+        $stmt = $connect->prepare($query);
+        $result = $stmt->execute([$data['TenGoiTap'], $data['ThoiHan'], $data['Gia']]);
+        
+        if ($result) {
+            $this->db->disconnect_db($connect);
+            return true;
+        } else {
+            $this->db->disconnect_db($connect);
+            return false;
+        }
+    }
+    return false; // Nếu không thể kết nối
+}
+public function delete_Pack($IDGoiTap) {
+    $connect = $this->db->connect_db();
+    if ($connect) {
+        $query = 'DELETE FROM goitap WHERE IDGoiTap = ?';
+        $stmt = $connect->prepare($query);
+        $result = $stmt->execute([$IDGoiTap]);
+
+        if ($result) {
+            $this->db->disconnect_db($connect);
+            return true;
+        } else {
+            $this->db->disconnect_db($connect);
+            return false;
+        }
+    }
+    return false; // Nếu không thể kết nối
+}
+
+
     }
