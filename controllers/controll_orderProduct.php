@@ -7,96 +7,128 @@ require_once(__DIR__ . "/../models/model_auth.php");
 require_once(__DIR__ . "/../models/model_orderInfo.php");
 require_once(__DIR__ . "/../models/model_warehouse.php");
 require_once(__DIR__ . "/../models/model_cart.php");
-class controll_orderProduct{
+require_once(__DIR__ . '/control.php');
+class controll_Order extends Control
+{
 
-    public function check_conditions($products){
-        $shop = new model_product();
+    protected $model_product;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->model_product = new model_product();
+    }
+
+    public function check_conditions($product)
+    {
         $amount = 0;
-        foreach ($products as $item){
-            $products = $shop->get_One_Products($item["IDSanPham"]);
-            if($item["SoLuong"] > $products[0]["SoLuong"]){
+        $product_check = $this->model_product->get_One_Products($product["IDSanPham"]);
+        if (is_array($product_check)) {
+            if ($product["SoLuong"] > $product_check["SoLuong"]) {
                 return ['error' => 'Sản phẩm không đủ số lượng'];
-            }else{
-                $amount += $item["SoLuong"] *  $products[0]["DonGia"];
+            } else {
+                $amount += $product["SoLuong"] * $product_check["DonGia"];
             }
+        } else {
+            return ['error' => 'Sản phẩm không tồn tại'];
         }
+
         return $amount;
     }
-    public static function controll_ExeOrder(){
-        if($_SERVER['REQUEST_METHOD'] === "POST"){
+    public function controll_ExeOrder()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ','', $jwt));
-            $data = json_decode(file_get_contents('php://input'),true);
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $data = json_decode(file_get_contents('php://input'), true);
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
             //Xác thực
-            $Auth =  new JWT();
-            $verify = $Auth->JWT_verify($jwt);
-            if($verify){
-                $conditions = new controll_orderProduct();
-                $check_conditions = $conditions->check_conditions($data["products"]);
-                if(!$check_conditions){
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Sản phẩm không đủ số lượng']);
+            $Auth = new JWT();
+            $verify = $Auth->verifyJWT($jwt, $agent);
+            if ($verify) {
+                $conditions = new controll_Order();
+                $amount = 0;
+                foreach ($data["products"] as $index => $item) {
+                    $check_quantity = $conditions->check_conditions($item);
+                    if (is_array($check_quantity) && isset($check_quantity['error'])) {
+                        http_response_code(403);
+                        echo json_encode($check_quantity);
+                        return;
+                    } else {
+                        if (is_numeric($check_quantity)) {
+                            $amount += $check_quantity;
+                        } else {
+                            http_response_code(500);
+                            echo json_encode(['error' => 'Đã xảy ra lỗi không xác định.']);
+                            return;
+                        }
+                    }
                 }
-                $user = new model_auth();
-                $username = $Auth->getUserName($jwt);
-                $cusID = $user->getIDKhachhang($username); 
-                $data_user =$user->AccountInfo($username) ; 
-                $oder = new model_order("", $cusID , $data["HinhThucThanhToan"], $data_user["DiaChi"],$check_conditions);
+                $username = $this->jwt->getUserName($jwt);
+                $cusID = $this->modelAuth->getIDKhachhang($username);
+                $data_user = $this->modelAuth->AccountInfo($username);
+                $oder = new model_order("", $cusID, $data["HinhThucThanhToan"], $data_user["DiaChi"], $amount);
                 //Thêm đơn hàng
-                $ExeOrder =  $oder->Order();
+                $ExeOrder = $oder->Order();
                 //Thêm chi tiết đơn hàng
-                foreach ($data["products"] as $item){
+                foreach ($data["products"] as $item) {
                     $oderinfo = new model_orderInfo($ExeOrder, $item["IDSanPham"], $item["SoLuong"]);
                     $oderinfo->Order();
                     $updateQuantity = new Model_warehouse($item["IDSanPham"]);
                     $updateQuantity->updateQuantity($item["SoLuong"]);
-                    if(!$oderinfo){
+                    if (!$oderinfo || !$updateQuantity) {
                         http_response_code(403);
                         echo json_encode(['error' => 'Không thể mua sản phẩm']);
+                        return;
                     }
                 }
-                if($ExeOrder && $data["HinhThucThanhToan"]==2){
+                //Thao tác thanh toán
+                if ($ExeOrder && $data["HinhThucThanhToan"] == 2) {
                     $payment_data = [];
                     $payment_data['IDDonHang'] = $ExeOrder;
-                    $payment_data['amount'] = $check_conditions;
+                    $payment_data['amount'] = $amount;
                     $payment_data['name'] = $data_user['HoTen'];
                     $payment_data['phone'] = $data_user['SDT'];
-                    $payment_data['products'] = $data;
                     //Tạo link thanh toán
-                    $payment = new  Controll_payment();
+                    $payment = new Controll_payment();
                     $ExePayment = $payment->create($payment_data);
-                    if($ExePayment){
+                    if ($ExePayment) {
                         http_response_code(200);
                         echo json_encode($ExePayment);
-                    }else{
+                    } else {
                         http_response_code(403);
-                        echo json_encode($ExePayment);
+                        echo json_encode(['error' => 'Không thể thanh toán ' . $ExePayment]);
                     }
-                }elseif($ExeOrder && $data["HinhThucThanhToan"]==1){
+                } elseif ($ExeOrder && $data["HinhThucThanhToan"] == 1) {
                     $cart = new model_cart();
-                    foreach ($data["products"] as $item){
-                        $cart->deleteItem($item['IDSanPham'],$cusID);
+                    foreach ($data["products"] as $item) {
+                        $cart->deleteItem($item['IDSanPham'], $cusID);
                     }
                     http_response_code(200);
                     echo json_encode(['message' => 'Mua sản phẩm thành công']);
                 }
-            }else{
+            } else {
                 http_response_code(403);
-                echo json_encode(['error'=> 'Lỗi xác thực']);
+                echo json_encode(['error' => 'Lỗi xác thực']);
             }
-        }else{
+        } else {
             http_response_code(404);
-            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
-    public static function getPurchaseOrder(){
-        if($_SERVER['REQUEST_METHOD']==='GET'){
+    public static function getPurchaseOrder()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ','', $jwt));
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
             $Auth = new JWT();
             $verify = $Auth->JWT_verify($jwt);
-            if($verify){
+            if ($verify) {
                 $username = $Auth->getUserName($jwt);
                 $user = new model_auth();
                 $userId = $user->getIDKhachhang($username);
@@ -104,7 +136,7 @@ class controll_orderProduct{
                 $result_Purchase = $order->get_All_Purchase($userId);
                 $orderInfo = new model_orderInfo();
                 $groupedOrders = [];
-                foreach($result_Purchase as $item){
+                foreach ($result_Purchase as $item) {
                     $orderDetails = [
                         "IDDonHang" => $item["IDDonHang"],
                         "IDKhachHang" => $item["IDKhachHang"],
@@ -123,26 +155,27 @@ class controll_orderProduct{
                 echo json_encode(["orders" => array_values($groupedOrders)]);
             } else {
                 http_response_code(400);
-                echo json_encode(['error'=> 'Lỗi xác thực']);
+                echo json_encode(['error' => 'Lỗi xác thực']);
             }
-        }else{
+        } else {
             http_response_code(404);
-            echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
-    public static function getPurchaseOrder_unconfimred(){
-        if($_SERVER['REQUEST_METHOD']==='POST'){
+    public static function getPurchaseOrder_unconfimred()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ','', $jwt));
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
             $Auth = new JWT();
             $verify = $Auth->JWT_verify($jwt);
-            if($verify){
+            if ($verify) {
                 $order = new model_order();
                 $result_Purchase = $order->get_All_Purchase_unconfimred();
                 $orderInfo = new model_orderInfo();
                 $groupedOrders = [];
-                foreach($result_Purchase as $item){
+                foreach ($result_Purchase as $item) {
                     $orderDetails = [
                         "IDDonHang" => $item["IDDonHang"],
                         "IDKhachHang" => $item["IDKhachHang"],
@@ -161,39 +194,40 @@ class controll_orderProduct{
                 echo json_encode(["orders" => array_values($groupedOrders)]);
             } else {
                 http_response_code(400);
-                echo json_encode(['error'=> 'Lỗi xác thực']);
+                echo json_encode(['error' => 'Lỗi xác thực']);
             }
-        }else{
-                http_response_code(404);
-                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
-            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
     }
 
-    public static function Control_PurchaseOrder_confirm(){
-        if($_SERVER['REQUEST_METHOD']==='PUT'){
+    public static function Control_PurchaseOrder_confirm()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ','', $jwt));
-            $data = json_decode(file_get_contents('php://input'),true);
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $data = json_decode(file_get_contents('php://input'), true);
             $Auth = new JWT();
             $verify = $Auth->JWT_verify($jwt);
-            if($verify){
+            if ($verify) {
                 $order = new model_order();
                 $result_Purchase = $order->Purchase_confirm($data["IDDonHang"]);
-                if($result_Purchase){
+                if ($result_Purchase) {
                     http_response_code(200);
                     exit();
-                }else{
+                } else {
                     http_response_code(403);
                     var_dump($result_Purchase);
-                    echo json_encode(['error'=> 'Cập nhật không thành công']);
+                    echo json_encode(['error' => 'Cập nhật không thành công']);
                 }
             } else {
                 http_response_code(403);
-                echo json_encode(['error'=> 'Lỗi xác thực']);
+                echo json_encode(['error' => 'Lỗi xác thực']);
             }
-        }else{
-                http_response_code(404);
-                echo json_encode(['error'=> 'Đường dẫn không tồn tại']);
-            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
     }
 }

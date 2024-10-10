@@ -1,88 +1,102 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    // Kiểm tra xem HTTP_PHPSESSID có được cung cấp không
-    if (isset($_SERVER["HTTP_PHPSESSID"])) {
-        session_id($_SERVER["HTTP_PHPSESSID"]);
+// if (session_status() == PHP_SESSION_NONE) {
+//     // Kiểm tra xem HTTP_PHPSESSID có được cung cấp không
+//     if (isset($_SERVER["HTTP_PHPSESSID"]) && !empty($_SERVER["HTTP_PHPSESSID"])) {
+//         session_id($_SERVER["HTTP_PHPSESSID"]); // Thiết lập session ID từ HTTP_PHPSESSID
+//     } else {
+//         // Nếu HTTP_PHPSESSID không được cung cấp hoặc là null, khởi tạo session với ID mới
+//         session_start(); // Bắt đầu session mới với ID mới
+//     }
+//     // Bắt đầu phiên
+//     session_start();
+// } else {
+//     // Phiên đã bắt đầu, kiểm tra nếu session_id không khớp
+//     if (isset($_SERVER["HTTP_PHPSESSID"]) && session_id() !== $_SERVER["HTTP_PHPSESSID"]) {
+//         session_write_close();
+//         session_id($_SERVER["HTTP_PHPSESSID"]);
+//         session_start();
+//     }
+// }
+
+require_once(__DIR__.'/../models/model_rt.php');
+class JWT
+{
+    private $model_rt;
+    private $jwt;
+
+    public function __construct($accessToken = null){
+        $this->model_rt = new RefreshTokenModel();
+        $this->jwt = $accessToken;
     }
-    // Bắt đầu phiên
-    session_start();
-} else {
-    // Phiên đã bắt đầu, kiểm tra nếu session_id không khớp
-    if (isset($_SERVER["HTTP_PHPSESSID"]) && session_id() !== $_SERVER["HTTP_PHPSESSID"]) {
-        session_write_close(); 
-        session_id($_SERVER["HTTP_PHPSESSID"]); 
-        session_start(); 
+
+    public function generateJWT(array $payload , $agent): string //Access Token JWT
+    {
+        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+        $encodedHeader = $this->base64UrlEncode($header);
+        $encodedPayload = $this->base64UrlEncode(json_encode($payload));
+        $signature = hash_hmac('sha256', "$encodedHeader.$encodedPayload", $_SESSION["csrf_token"][$payload['username']]["$agent"], true);
+        $encodedSignature = $this->base64UrlEncode($signature);
+        return "$encodedHeader.$encodedPayload.$encodedSignature";
     }
+
+    public function verifyJWT(string $jwt , $agent): bool
+    {
+        list($encodedHeader, $encodedPayload, $encodedSignature) = explode('.', $jwt);
+        $header = base64_decode($encodedHeader);
+        $payload = json_decode(base64_decode($encodedPayload) ,true);
+        $expectedSignature = $this->base64UrlEncode(hash_hmac('sha256', "$encodedHeader.$encodedPayload", $_SESSION["csrf_token"][$payload['username']]["$agent"], true));
+        if (!hash_equals($encodedSignature, $expectedSignature)) {
+            return false;
+        }
+        return true;
+    }
+
+    public function getRole(){
+        list($encodedHeader, $encodedPayload) = explode('.', $this->jwt);
+        $payload = base64_decode($encodedPayload);
+        $payloadArray = json_decode($payload, true);
+        return $payloadArray['role'] ?? null;
+    }
+
+    public function createRefreshToken(string $username , $agent): ?string
+    {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $randomString = bin2hex(random_bytes(32));
+        $refreshToken = hash('sha256', $randomString);
+        $newExpiryDate = date('Y-m-d H:i:s', time() + 3600 * 24 * 30);
+        $this->model_rt->saveToken($username, $refreshToken, $newExpiryDate , $agent);
+        return $refreshToken;
+    }
+
+
+    public function VerifiRefreshToken($refreshToken, $username)
+    {
+
+    }
+
+    public function getUsername(string $jwt): ?string
+    {
+        list($encodedHeader, $encodedPayload) = explode('.', $jwt);
+        $payload = base64_decode($encodedPayload);
+        $payloadArray = json_decode($payload, true);
+        return $payloadArray['username'] ?? null;
+    }
+
+    public function generateCSRFToken(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+
+    protected function base64UrlEncode(string $data): string
+    {
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+    }
+
+    protected function validateCSRFToken(?string $username, ?string $csrfToken): bool
+    {
+        return isset($username) && isset($csrfToken) && isset($_SESSION["csrf_token"][$username]) && $csrfToken === $_SESSION["csrf_token"][$username];
+    }
+
+    
+
 }
-    class JWT{
-        private function ExEgenerateCSRFToken() {
-            $token = bin2hex(random_bytes(32)); // Sử 
-            return $token;
-        }
-        private function generateJWT($payload){
-            $header = json_encode(['typ'=>'JWT','alg'=>'HS256']);
-            $encode_Header_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode($header));
-            $encode_Username_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode(json_encode($payload)));
-            //Tạo chữ ký!!!!!!!
-            $signature = hash_hmac('sha256',"$encode_Header_base64Url.$encode_Username_base64Url",'20042101nguyenthanhloc',true);
-            $endcode_Signature_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode($signature));
-            return "$encode_Header_base64Url.$encode_Username_base64Url.$endcode_Signature_base64Url";
-        } 
-
-        private function verifyJWT($jwt) {
-            list($header64, $payload64, $signature64) = explode('.', $jwt);
-            $header = base64_decode($header64);
-            $payload = base64_decode($payload64);
-            $username = $this->Username($jwt);
-            $csrf = $this->get_CSRF($jwt);
-            //Header
-            $encode_Header_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode($header));
-            //Payload
-            $encode_Username_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode($payload));
-            //Tạo chữ ký từ header và payload nhận được
-            $expectedSignature = hash_hmac('sha256',"$encode_Header_base64Url.$encode_Username_base64Url",'20042101nguyenthanhloc',true);
-            //Get chữ ký để so sánh
-            $endcode_Signature_base64Url = str_replace(['+', '/', '='], ['-', '_', ''],base64_encode($expectedSignature));
-            if (!hash_equals($signature64, $endcode_Signature_base64Url)) {
-                return  false; // Chữ ký không hợp lệ
-            }
-            if ($csrf !== $_SESSION["csrf_token"][$username] ) {
-                echo $csrf ."|". $_SESSION["csrf_token"][$username];
-                return false;
-            }// CSRF token không khớp
-            return true ;//hash_equals($signature, $expectedSignature);
-        }
-
-
-        private function get_CSRF($jwt){
-            list($header64, $payload64, $signature64) = explode('.', $jwt);
-            $payload = base64_decode($payload64);
-            $payloadArray = json_decode($payload, true); 
-            return $payloadArray['jti'];
-        }
-
-        private function Username($jwt){
-            list($header64, $payload64, $signature64) = explode('.', $jwt);
-            $payload = base64_decode($payload64);
-            $payloadArray = json_decode($payload, true); 
-            return $payloadArray['username'];
-        }
-
-        public function JWT_key($payload){
-            return $this->generateJWT($payload);
-        }
-
-        public function JWT_verify($jwt ){
-            return $this->verifyJWT($jwt);
-            
-        }
-
-        public function getUserName($jwt){
-            return $this->Username($jwt);
-        }
-
-        public function generateCSRFToken(){
-            return $this->ExEgenerateCSRFToken();
-        }
-
-    }

@@ -2,7 +2,7 @@
 require_once("connect_db.php");
     class model_cart{
         private $db;
-        private $userID;
+        public $userID;
         public function __construct($userID = null){
             $this->db = new Database();
             $this->userID = $userID;
