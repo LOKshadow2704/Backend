@@ -90,7 +90,7 @@ class controll_product extends Control
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
             $data = json_decode(file_get_contents("php://input"), true);
             $Auth = new JWT;
-            $verify = $Auth->JWT_verify($jwt);
+            $verify = $Auth->verifyJWT($jwt);
             if ($verify) {
                 if (isset($data["data"]) && !empty($data["data"])) {
                     $products = new model_product();

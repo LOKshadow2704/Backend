@@ -8,6 +8,10 @@ require_once("connect_db.php");
             $this->userID = $userID;
         }
 
+        public function setUserId($userId) {
+            $this->userID = $userId;
+        }
+
         public function get_All_cart(){
             $connect = $this->db->connect_db();
             if ($connect) {
@@ -68,12 +72,12 @@ require_once("connect_db.php");
             }
         }
 
-        public function PlusCart($IDSanPham,$IDKhachHang){
+        public function updateQuantity($IDSanPham,$IDKhachHang, $SoLuong){
             $connect = $this->db->connect_db();
             if($connect){
-                $query = "update giohang set SoLuong = SoLuong + 1 where IDSanPham = ? and IDKhachHang = ?";
+                $query = "update giohang set SoLuong = ? where IDSanPham = ? and IDKhachHang = ?";
                 $stmt = $connect ->prepare($query);
-                $result= $stmt->execute([$IDSanPham,$IDKhachHang]);
+                $result= $stmt->execute([$SoLuong , $IDSanPham,$IDKhachHang]);
                 if($result){
                     $this->db->disconnect_db($connect);
                     return $result;
@@ -86,23 +90,6 @@ require_once("connect_db.php");
 
         }
 
-        public function MinusCart($IDSanPham,$IDKhachHang){
-            $connect = $this->db->connect_db();
-            if($connect){
-                $query = "update giohang set SoLuong = SoLuong - 1 where IDSanPham = ? and IDKhachHang = ?";
-                $stmt = $connect ->prepare($query);
-                $result= $stmt->execute([$IDSanPham,$IDKhachHang]);
-                if($result){
-                    $this->db->disconnect_db($connect);
-                    return $result;
-                }else{
-                    $this->db->disconnect_db($connect);
-                    return false;
-                }
-            }
-           
-
-        }
 
         public function deleteItem($IDSanPham,$IDKhachHang){
             $connect = $this->db->connect_db();
@@ -110,6 +97,23 @@ require_once("connect_db.php");
                 $query = "DELETE FROM `giohang` WHERE IDSanPham = ? AND IDKhachHang = ?";
                 $stmt = $connect ->prepare($query);
                 $result= $stmt->execute([$IDSanPham,$IDKhachHang]);
+                if($result){
+                    $this->db->disconnect_db($connect);
+                    return $result;
+                }else{
+                    $this->db->disconnect_db($connect);
+                    return false;
+                }
+            }
+        }
+
+        public function getCartItem($IDKhachHang , $IDSanPham){
+            $connect = $this->db->connect_db();
+            if($connect){
+                $query = "SELECT * FROM GioHang WHERE IDSanPham = ? AND IDKhachHang = ? ";
+                $stmt = $connect ->prepare($query);
+                $result= $stmt->execute([$IDSanPham,$IDKhachHang]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
                 if($result){
                     $this->db->disconnect_db($connect);
                     return $result;

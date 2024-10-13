@@ -101,7 +101,13 @@ class AuthController extends Control
             $this->sendResponse(400, ['error' => ' Yêu cầu không hợp lệ.']);
             return;
         }
-        if ($jwt && $this->jwt->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT'])) {
+        $agent = "";
+        if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+            $agent = "MOBILE_GOATFITNESS";
+        } else {
+            $agent = "WEB";
+        }
+        if ($jwt && $this->jwt->verifyJWT($jwt, $agent)) {
             $username = $this->jwt->getUserName($jwt);
             $this->clearSession($username);
             $this->sendResponse(200, ['message' => 'Đăng xuất thành công']);

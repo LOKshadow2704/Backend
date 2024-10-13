@@ -34,7 +34,7 @@ $routes = [
         },
     ],
 
-    // User Routes (Tách từ Account Routes)
+    // User Routes
     'user' => [
         '/Backend/user/update' => function () {
             $userController = new UserController();
@@ -153,13 +153,9 @@ $routes = [
             $cartController = new controll_cart();
             $cartController->controll_AddtoCart();
         },
-        '/Backend/cart/updateQuanPlus' => function () { 
+        '/Backend/cart/updateQuan' => function () { 
             $cartController = new controll_cart();
-            $cartController->controll_PlusCart();
-        },
-        '/Backend/cart/updateQuanMinus' => function () {
-            $cartController = new controll_cart();
-            $cartController->controll_MinusCart();
+            $cartController->updateQuantity();
         },
         '/Backend/cart/delete' => function () { //---------------Đã chỉnh sửa
             $cartController = new controll_cart();
