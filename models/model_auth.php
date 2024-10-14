@@ -78,7 +78,7 @@ class model_auth
         }
     }
 
-    public function ExeUpdateUserInfo($update_data, $username)
+    public function UpdateUserInfo($update_data, $username)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
@@ -98,35 +98,54 @@ class model_auth
         }
     }
 
-    public function ExeUpdatePassword($currentPW, $newPW, $username)
+    public function UpdatePassword($currentPW, $newPW, $username)
     {
-        $connect = $this->db->connect_db();
-        $sha_key = getenv('SHA_KEY');
-        $hash_currentPW = hash_hmac('sha256', $currentPW, $sha_key);
-        $hash_newPW = hash_hmac('sha256', $newPW, $sha_key);
-        if ($connect) {
-            //Kiểm tra mật khẩu cũ
-            $checkPW_query = "SELECT MatKhau FROM TaiKhoan WHERE TenDangNhap =?";
+        try {
+            // Kết nối đến cơ sở dữ liệu
+            $connect = $this->db->connect_db();
+            if (!$connect) {
+                return "Lỗi kết nối cơ sở dữ liệu";
+            }
+
+            // Băm mật khẩu hiện tại và mật khẩu mới
+            $sha_key = getenv('SHA_KEY');
+            $hash_currentPW = hash_hmac('sha256', $currentPW, $sha_key);
+            $hash_newPW = hash_hmac('sha256', $newPW, $sha_key);
+
+            // Kiểm tra mật khẩu cũ có đúng không
+            $checkPW_query = "SELECT MatKhau FROM TaiKhoan WHERE TenDangNhap = ?";
             $checkPW_stmt = $connect->prepare($checkPW_query);
             $checkPW_stmt->execute([$username]);
             $checkPW = $checkPW_stmt->fetch(PDO::FETCH_ASSOC);
-            if ($hash_currentPW == $checkPW["MatKhau"]) {
-                //Thực hiện thay đổi
-                $query = "UPDATE TaiKhoan SET MatKhau = ? WHERE TenDangNhap = ?";
-                $stmt = $connect->prepare($query);
-                $result = $stmt->execute([$hash_newPW, $username]);
-                if ($result) {
-                    return "Đổi mật khẩu thành công";
-                } else {
-                    return "Đổi mật khẩu không thành công";
-                }
-            } else {
+
+            if ($checkPW === false) {
+                return "Tài khoản không tồn tại";
+            }
+
+            if ($hash_currentPW != $checkPW["MatKhau"]) {
                 return "Mật khẩu hiện tại không khớp";
             }
+
+            // Thực hiện thay đổi mật khẩu
+            $updatePW_query = "UPDATE TaiKhoan SET MatKhau = ? WHERE TenDangNhap = ?";
+            $updatePW_stmt = $connect->prepare($updatePW_query);
+            $result = $updatePW_stmt->execute([$hash_newPW, $username]);
+
+            if ($result) {
+                return "Đổi mật khẩu thành công";
+            } else {
+                return "Đổi mật khẩu không thành công";
+            }
+        } catch (PDOException $e) {
+            // Bắt lỗi liên quan đến PDO
+            return "Lỗi hệ thống: " . $e->getMessage();
+        } catch (Exception $e) {
+            // Bắt các lỗi khác
+            return "Đã xảy ra lỗi: " . $e->getMessage();
         }
     }
 
-    public function ExeupdateUserAvt($link, $username)
+    public function updateUserAvt($link, $username)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
@@ -236,7 +255,8 @@ class model_auth
         return $id['IDKhachHang'];
     }
 
-    public function checkPHPSESSID($username){
+    public function checkPHPSESSID($username)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT phpsessid FROM TaiKhoan WHERE TenDangNhap = ?";
@@ -247,12 +267,13 @@ class model_auth
         }
     }
 
-    public function savePHPSESSID($username, $phpSessionId){
+    public function savePHPSESSID($username, $phpSessionId)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "UPDATE TaiKhoan SET phpsessid = ? WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
-            $stmt->execute([$phpSessionId , $username]);
+            $stmt->execute([$phpSessionId, $username]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         }

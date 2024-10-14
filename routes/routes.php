@@ -36,23 +36,23 @@ $routes = [
 
     // User Routes
     'user' => [
-        '/Backend/user/update' => function () {
+        '/Backend/user/update' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->Update_User();
         },
-        '/Backend/user/updatePassword' => function () {
+        '/Backend/user/updatePW' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->Update_Password();
         },
-        '/Backend/user/updateAvt' => function () {
+        '/Backend/user/updateAvt' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->Update_Avt();
         },
-        '/Backend/getAccountInfo' => function () {
+        '/Backend/user/Info' => function () { //---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->getAccountInfo();
         },
-        '/Backend/user/checkin' => function () {
+        '/Backend/user/training' => function () {
             $userController = new UserController();
             $userController->get_user_training();
         },
