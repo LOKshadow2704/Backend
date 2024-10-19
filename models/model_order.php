@@ -22,7 +22,7 @@ class model_order{
         $this->ThanhTien = $ThanhTien;
     }
 
-    private function ExeOrder(){
+    public function Order(){
         $connect = $this->db->connect_db();
         if($connect){
             $query = "INSERT into DonHang values (?,?,?,?,?,?,?,?,'Chưa xác nhận')";
@@ -46,7 +46,7 @@ class model_order{
         }
     }
 
-    private function Exe_get_All_Purchase($IDKhachHang){
+    public function get_All_Purchase($IDKhachHang){
         $connect = $this->db->connect_db();
         if($connect){
             $query = "SELECT * FROM DonHang WHERE IDKhachHang = ?";
@@ -63,7 +63,7 @@ class model_order{
         }
     }
 
-    private function ExeUpdatePaymentStatus($IDDonHang){
+    public function ExeUpdatePaymentStatus($IDDonHang){
         $connect = $this->db->connect_db();
         if($connect){
             $query = "UPDATE DonHang SET TrangThaiThanhToan = 'Đã Thanh Toán' WHERE IDDonHang = ?";
@@ -79,7 +79,7 @@ class model_order{
         }
     }
 
-    public function get_All_Purchase_unconfimred(){
+    public function get_Purchase_unconfimred(){
         $connect = $this->db->connect_db();
         if($connect){
             $query = "SELECT * FROM DonHang WHERE TrangThai LIKE 'Chưa xác nhận'";
@@ -112,13 +112,6 @@ class model_order{
         }
     }
 
-    public function Order(){
-        return $this->ExeOrder();
-    }
-
-    public function get_All_Purchase($IDKhachHang){
-        return $this->Exe_get_All_Purchase($IDKhachHang);
-    }
 
     public function updatePaymentStatus($IDDonHang){
         return $this->ExeUpdatePaymentStatus($IDDonHang);

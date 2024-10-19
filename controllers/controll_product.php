@@ -10,7 +10,7 @@ class controll_product extends Control
         parent::__construct( $_SERVER['HTTP_AUTHORIZATION'] ?? null);
         $this->model_products = new model_product();
     }
-    public function controll_getAll_products()
+    public function getAll_products()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $result = $this->model_products->get_All_Products();
@@ -30,7 +30,7 @@ class controll_product extends Control
         }
     }
 
-    public function controll_getAll_products_byManeger()
+    public function getAll_products_byManeger()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $result = $this->model_products->get_All_Products_byManege();
@@ -63,7 +63,7 @@ class controll_product extends Control
         }
     }
 
-    public  function controll_getOne_products()
+    public  function getOne_products()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $productID = $_GET['IDSanPham'] ?? null;
@@ -84,39 +84,49 @@ class controll_product extends Control
         }
     }
 
-    public static function controll_update_Product()
+    public function update_Product()
     {
         if ($_SERVER['REQUEST_METHOD'] === "PUT") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
             $data = json_decode(file_get_contents("php://input"), true);
-            $Auth = new JWT;
-            $verify = $Auth->verifyJWT($jwt);
-            if ($verify) {
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $role = $this->jwt->getRole();
+            if ($verify && ($role == "1" || $role == "2")) {
                 if (isset($data["data"]) && !empty($data["data"])) {
-                    $products = new model_product();
-                    $result = $products->updateProduct($data["data"], $data["IDSanPham"]);
+                    $result = $this->model_products->updateProduct($data["data"], $data["IDSanPham"]);
                     if ($result) {
                         http_response_code(200);
                         echo json_encode(['success' => 'Thay đổi thành công']);
+                        return;
                     } else {
                         http_response_code(403);
                         echo json_encode(['error' => 'Không thực hiện được hành động']);
+                        return;
                     }
                 } else {
                     http_response_code(403);
                     echo json_encode(['error' => 'Không có thay đổi']);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
-    public static function controll_get_All_Category()
+    public static function get_All_Category()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $products = new model_product();
@@ -126,7 +136,7 @@ class controll_product extends Control
                 echo json_encode($result);
             } else {
                 http_response_code(404);
-                echo json_encode(['error' => 'Không có sản phẩm']);
+                echo json_encode(['error' => 'Không lấy được dữ liệu']);
             }
         } else {
             http_response_code(404);
@@ -134,16 +144,21 @@ class controll_product extends Control
         }
     }
 
-    public static function controll_delete_products()
+    public function delete_products()
     {
         if ($_SERVER['REQUEST_METHOD'] === "DELETE") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
             $data = json_decode(file_get_contents("php://input"), true);
-            $Auth = new JWT;
-            $verify = $this->jwt->JWT_verify($jwt);
-            if ($verify) {
-                $products = new model_product();
-                $result = $products->delete_Product($data["IDSanPham"]);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $role = $this->jwt->getRole();
+            if ($verify && ($role == "1" || $role == "2")) {
+                $result = $this->model_products->delete_Product($data["IDSanPham"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Xóa thành công']);
@@ -162,16 +177,21 @@ class controll_product extends Control
         }
     }
 
-    public static function controll_add_Product()
+    public  function add_Product()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
             $data = json_decode(file_get_contents("php://input"), true);
-            $Auth = new JWT;
-            $verify = $Auth->JWT_verify($jwt);
-            if ($verify) {
-                $products = new model_product();
-                $result = $products->add_Product($data["data"], $data["SoLuong"]);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $role = $this->jwt->getRole();
+            if ($verify && ($role == "1" || $role == "2")) {
+                $result = $this->model_products->add_Product($data["data"], $data["SoLuong"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Thêm thành công']);

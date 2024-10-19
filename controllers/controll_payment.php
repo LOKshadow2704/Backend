@@ -16,7 +16,7 @@
             $data = [
                 "orderCode" => $info['IDDonHang'],
                 "amount" => $info['amount'],
-                "description" => "Thanh toán đơn hàng",
+                "description" => "Thanh toán GOAT FITNESS",
                 'buyerName' => $info['name'],
                 'buyerPhone' => $info['phone'],
                 "returnUrl" => $YOUR_DOMAIN . "?message=success",

@@ -14,8 +14,8 @@ require_once(__DIR__ . '/../controllers/control_user.php');
 
 $routes = [
     // Account Routes
-      // Account Routes
-      'account' => [
+    // Account Routes
+    'account' => [
         '/Backend/signup' => function () { //---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->signup();
@@ -52,80 +52,83 @@ $routes = [
             $userController = new UserController();
             $userController->getAccountInfo();
         },
-        '/Backend/user/training' => function () {
+        '/Backend/user/training' => function () { //---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->get_user_training();
         },
-        '/Backend/admin/getAllAccount' => function () {
+        '/Backend/admin/getAllAccount' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->get_Account();
         },
-        '/Backend/admin/update' => function () {
-            $authController = new AuthController();
+        '/Backend/admin/update' => function () {//---------------Đã chỉnh sửa
+            $authController = new UserController();
             $authController->Update_Account_ByAdmin();
         },
         '/Backend/employee/working' => function () {
             $authController = new AuthController();
             $authController->get_Employee_Working();
         },
+        // checkin
+        // checkout
+
     ],
 
     // Product Routes
     'product' => [
         '/Backend/products' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_getAll_products();
+            $productController->getAll_products();
         },
         '/Backend/products/manager' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_getAll_products_byManeger();
+            $productController->getAll_products_byManeger();
         },
         '/Backend/products/info' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_getOne_products();
+            $productController->getOne_products();
         },
-        '/Backend/product/update' => function () {
+        '/Backend/products/product/update' => function () {  //---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_update_Product();
+            $productController->update_Product();
         },
-        '/Backend/product/add' => function () {
+        '/Backend/products/product/add' => function () {//---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_add_Product();
+            $productController->add_Product();
         },
-        '/Backend/product/get_All_Category' => function () {
+        '/Backend/products/categories/all' => function () {//---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_get_All_Category();
+            $productController->get_All_Category();
         },
-        '/Backend/product/delete' => function () {
+        '/Backend/products/product/delete' => function () {//---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->controll_delete_products();
+            $productController->delete_products();
         },
         //Thêm sản phẩm liên quan
     ],
 
     // PT (Personal Trainer) Routes
     'pt' => [
-        '/Backend/PT' => function () {
+        '/Backend/personalTrainer/all' => function () {//---------------Đã chỉnh sửa
             $ptController = new controll_PT();
-            $ptController->controll_getAll_PT();
+            $ptController->getAll_personalTrainer();
         },
-        '/Backend/personalTrainer/Info' => function () {
+        '/Backend/personalTrainer/Info' => function () {//---------------Đã chỉnh sửa
             $ptController = new controll_PT();
-            $ptController->controll_getOne_personalTrainer();
+            $ptController->getOne_personalTrainer();
         },
-        '/Backend/PT/Register' => function () {
+        '/Backend/personalTrainer/Register' => function () {//---------------Đã chỉnh sửa
             $ptController = new controll_PT();
-            $ptController->controll_Register_PT();
+            $ptController->Register_PT();
         },
     ],
 
     // Gym Package Routes
     'gympack' => [
-        '/Backend/gympack' => function () {
+        '/Backend/gympack' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
             $gympackController->controll_get_All_gympack();
         },
-        '/Backend/gympack/update' => function () {
+        '/Backend/gympack/update' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
             $gympackController->controll_update_gympack();
         },
@@ -133,11 +136,11 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->controll_Register();
         },
-        '/Backend/PackageGym/UserInfo' => function () {
+        '/Backend/gympack/user' => function () {
             $gympackController = new controll_gympack();
             $gympackController->control_get_PackByUser();
         },
-        '/Backend/gympack/registerByEmployee' => function () {
+        '/Backend/gympack/manager/register' => function () {
             $gympackController = new controll_gympack();
             $gympackController->control_Register_PackByEmployee();
         },
@@ -153,7 +156,7 @@ $routes = [
             $cartController = new controll_cart();
             $cartController->controll_AddtoCart();
         },
-        '/Backend/cart/updateQuan' => function () { 
+        '/Backend/cart/updateQuan' => function () {
             $cartController = new controll_cart();
             $cartController->updateQuantity();
         },
@@ -167,17 +170,17 @@ $routes = [
     'order' => [
         '/Backend/order' => function () { //---------------Đã chỉnh sửa
             $orderController = new controll_Order();
-            $orderController->controll_ExeOrder();
+            $orderController->Order();
         },
-        '/Backend/PurchaseOrder' => function () {
+        '/Backend/order/purchase' => function () { //---------------Đã chỉnh sửa
             $orderController = new controll_Order();
             $orderController->getPurchaseOrder();
         },
-        '/Backend/PurchaseOrder/unconfirmed' => function () {
+        '/Backend/order/purchase/get_unconfirm' => function () {//---------------Đã chỉnh sửa
             $orderController = new controll_Order();
-            $orderController->getPurchaseOrder_unconfimred();
+            $orderController->PurchaseOrder_unconfimred();
         },
-        '/Backend/PurchaseOrder/confirm' => function () {
+        '/Backend/order/purchase/confirm' => function () {//---------------Đã chỉnh sửa
             $orderController = new controll_Order();
             $orderController->Control_PurchaseOrder_confirm();
         },
@@ -193,7 +196,7 @@ $routes = [
 
     // Home Content Routes
     'home' => [
-        '/Backend/HomeContent' => function () {
+        '/Backend/HomeContent' => function () { //---------------Đã chỉnh sửa
             $homeContentController = new Controll_HomeContent();
             $homeContentController->HomeContent();
         },

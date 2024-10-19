@@ -48,27 +48,13 @@
             }
         }
 
-        public function Update_Pack($data){
+        public function Update_Pack($price , $id){
             $connect = $this->db->connect_db();
             if($connect){
-                $IDGoiTap = null;
-                $query = 'UPDATE GoiTap SET ';
-                $query_value = array();
-                foreach ($data as $key => $value) {
-                    if ($key == "IDGoiTap") {
-                        $IDGoiTap = $value;
-                        continue;
-                    }
-                    $query .= " $key = ?,";
-                    $query_value[] = $value;
-                }
-                $query = rtrim($query, ',');
-                $query .= " WHERE IDGoiTap = ?";
+                $query = 'UPDATE GoiTap SET Gia = ? WHERE IDGoiTap = ?';
                 $stmt = $connect->prepare($query);
-                $query_value[] = $IDGoiTap;
-                $result = $stmt->execute($query_value);
+                $result = $stmt->execute([$price, $id]);
                 if($result){
-                    echo($query);
                     $this->db->disconnect_db($connect);
                     return $result;
                 }else{
