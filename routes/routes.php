@@ -8,7 +8,7 @@ require_once(__DIR__ . '/../controllers/controll_gymback.php');
 require_once(__DIR__ . '/../controllers/controll_cart.php');
 require_once(__DIR__ . '/../controllers/controll_orderProduct.php');
 require_once(__DIR__ . '/../controllers/controll_payment.php');
-require_once(__DIR__ . '/../controllers/controll_homecontent.php');
+// require_once(__DIR__ . '/../controllers/controll_homecontent.php');
 require_once(__DIR__ . '/../controllers/controll_checkin.php');
 require_once(__DIR__ . '/../controllers/control_user.php');
 
@@ -128,6 +128,10 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->controll_get_All_gympack();
         },
+        '/Backend/gympack/info' => function () {
+            $gympackController = new controll_gympack();
+            $gympackController->controll_get_All_gympack();
+        },
         '/Backend/gympack/update' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
             $gympackController->controll_update_gympack();
@@ -188,7 +192,19 @@ $routes = [
 
     // Payment Routes
     'payment' => [
-        '/Backend/returnPayment' => function () {
+        '/Backend/WEB/products/success' => function () {
+            $paymentController = new Controll_payment();
+            $paymentController->returnPayment();
+        },
+        '/Backend/MOBILE_GOATFITNESS/products/success' => function () {
+            $paymentController = new Controll_payment();
+            $paymentController->returnPayment();
+        },
+        '/Backend/WEB/products/cancle' => function () {
+            $paymentController = new Controll_payment();
+            $paymentController->returnPayment();
+        },
+        '/Backend/MOBILE_GOATFITNESS/products/cancle' => function () {
             $paymentController = new Controll_payment();
             $paymentController->returnPayment();
         },

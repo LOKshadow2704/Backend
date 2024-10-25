@@ -97,7 +97,7 @@ class controll_Order extends Control
                     $payment_data['phone'] = $data_user['SDT'];
                     //Tạo link thanh toán
                     $payment = new Controll_payment();
-                    $ExePayment = $payment->create($payment_data);
+                    $ExePayment = $payment->create($payment_data, $agent , "product");
                     if ($ExePayment) {
                         http_response_code(200);
                         echo json_encode(["success" => $ExePayment]);
