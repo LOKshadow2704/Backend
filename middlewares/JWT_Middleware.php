@@ -3,12 +3,13 @@ if (session_status() == PHP_SESSION_NONE) {
     // Kiểm tra xem HTTP_PHPSESSID có được cung cấp không
     if (isset($_SERVER["HTTP_PHPSESSID"]) && !empty($_SERVER["HTTP_PHPSESSID"])) {
         session_id($_SERVER["HTTP_PHPSESSID"]); // Thiết lập session ID từ HTTP_PHPSESSID
+        session_start();
     } else {
         // Nếu HTTP_PHPSESSID không được cung cấp hoặc là null, khởi tạo session với ID mới
         session_start(); // Bắt đầu session mới với ID mới
     }
     // Bắt đầu phiên
-    session_start();
+
 } else {
     // Phiên đã bắt đầu, kiểm tra nếu session_id không khớp
     if (isset($_SERVER["HTTP_PHPSESSID"]) && session_id() !== $_SERVER["HTTP_PHPSESSID"]) {
@@ -50,21 +51,21 @@ class JWT
             if (!hash_equals($encodedSignature, $expectedSignature)) {
                 return false;
             }
-    
+
             if (isset($payload['exp'])) {
                 $currentTime = time();
                 if ($payload['exp'] - $currentTime < 300) {
                     //Tạo token mới
                 }
             }
-    
+
             return true;
-        }else{
+        } else {
             //Xác thực không có AT
             $verifyRT = $this->verifyRefreshToken($refresh_token);
-            
+
         }
-        
+
     }
 
     public function getRole()
@@ -87,7 +88,7 @@ class JWT
 
     public function verifyRefreshToken($refreshToken, $username, $agent): bool
     {
-        $username =$_SESSION['username'];
+        $username = $_SESSION['username'];
         $storedToken = $this->model_rt->getToken($username, $agent);
         return hash_equals($storedToken, hash('sha256', $refreshToken));
     }
@@ -108,7 +109,10 @@ class JWT
 
     public function VerifiRefreshToken($refreshToken, $username)
     {
-
+        if (!empty($this->model_rt->getTokenByToken($refreshToken, $username)))
+            return true;
+        else
+            return false;
     }
 
     public function getUsername(string $jwt): ?string

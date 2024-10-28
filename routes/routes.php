@@ -26,7 +26,7 @@ $routes = [
         },
         '/Backend/login/refresh-token' => function () {
             $authController = new AuthController();
-            $authController->login(); // Chưa sửa
+            $authController->loginWithRT(); // Chưa sửa
         },
         '/Backend/logout' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();

@@ -39,7 +39,7 @@ class RefreshTokenModel
             $sqlInsert = "INSERT INTO refresh_tokens (TenDangNhap, refresh_token , agent, created_at ,expires_at) 
                           VALUES (?, ?, ?, ? , ?)";
             $stmtInsert = $this->connect->prepare($sqlInsert);
-            $stmtInsert->execute([$username, $refreshToken, $agent,$createdAt, $expiresAt]);
+            $stmtInsert->execute([$username, $refreshToken, $agent, $createdAt, $expiresAt]);
             return;
 
         }
@@ -47,21 +47,21 @@ class RefreshTokenModel
 
 
 
-    public function getToken($username , $agent)
+    public function getToken($username, $agent)
     {
         $sql = "SELECT * FROM refresh_tokens WHERE TenDangNhap = :username AND agent = :agent";
         $stmt = $this->connect->prepare($sql);
-        $stmt->execute([':username' => $username , 'agent' => $agent]);
+        $stmt->execute([':username' => $username, 'agent' => $agent]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getTokenByToken($refreshToken)
+    public function getTokenByToken($refreshToken, $username)
     {
-        $sql = "SELECT * FROM refresh_tokens WHERE refresh_token = :refresh_token AND revoked = FALSE AND expires_at > NOW()";
+        $sql = "SELECT * FROM refresh_tokens WHERE refresh_token = ? AND expires_at > NOW() AND TenDangNhap = ?";
         $stmt = $this->connect->prepare($sql);
-        $stmt->execute([':refresh_token' => $refreshToken]);
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->execute([$refreshToken, $username]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result : null;
     }
 
 }

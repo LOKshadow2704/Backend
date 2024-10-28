@@ -27,16 +27,16 @@ class AuthController extends Control
             } else {
                 // Trường hợp không có PHPSESSID trong cơ sở dữ liệu
                 if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_destroy(); 
+                    session_destroy();
                 }
                 session_start();
-                session_regenerate_id(true); 
-                $this->modelAuth->savePHPSESSID($username , session_id());
+                session_regenerate_id(true);
+                $this->modelAuth->savePHPSESSID($username, session_id());
             }
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-             if ($_SERVER['HTTP_USER_AGENT'] === 'MOBILE_GOATFITNESS') {
+            if ($_SERVER['HTTP_USER_AGENT'] === 'MOBILE_GOATFITNESS') {
                 $csrf = $this->jwt->generateCSRFToken();
                 if (!isset($_SESSION["csrf_token"])) {
                     $_SESSION["csrf_token"] = [];
@@ -55,7 +55,7 @@ class AuthController extends Control
                     'phpsessid' => session_id(),
                     'user' => $this->modelAuth->AccountInfo($username),
                 ]);
-            }else{
+            } else {
                 $this->createSession($username);
                 $this->sendResponse(200, [
                     'message' => 'Đăng nhập thành công',
@@ -75,19 +75,57 @@ class AuthController extends Control
             return;
         }
         $data = json_decode(file_get_contents('php://input'), true);
-        $refreshToken = isset($_COOKIE['refresh_token']) ? $_COOKIE['refresh_token'] : null;
-        if (!$refreshToken) {
-            $this->sendResponse(400, ['error' => 'Refresh Token không được cung cấp']);
+        $agent = "";
+        if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+            //Đăng nhập MOBILE
+            $agent = "MOBILE_GOATFITNESS";
+            $RT_request = json_decode(file_get_contents('php://input'), true);
+            $refreshToken = $RT_request['refresh_token'];
+            if (empty($refreshToken)) {
+                $this->sendResponse(400, ['error' => 'Refresh Token không được cung cấp']);
+                return;
+            }
+            $stmt = $this->jwt->VerifiRefreshToken($refreshToken, $data['username']);
+            if (!$stmt) {
+                $this->sendResponse(401, ['error' => 'Refresh Token không hợp lệ']);
+                return;
+            }
+            $csrf = $this->jwt->generateCSRFToken();
+                if (!isset($_SESSION["csrf_token"])) {
+                    $_SESSION["csrf_token"] = [];
+                }
+                if (!isset($_SESSION["csrf_token"][$data['username']]) || !is_array($_SESSION["csrf_token"][$data['username']])) {
+                    $_SESSION["csrf_token"][$data['username']] = [];
+                }
+                $_SESSION["csrf_token"][$data['username']][$_SERVER['HTTP_USER_AGENT']] = $csrf;
+            $payload = $this->createPayload($data['username']);
+            $token = $this->jwt->generateJWT($payload, $_SERVER['HTTP_USER_AGENT']);
+            $refreshToken = $this->jwt->createRefreshToken($data['username'], 'MOBILE');
+            $this->sendResponse(200, [
+                'message' => 'Đăng nhập thành công',
+                'access_token' => $token,
+                'refresh_token' => $refreshToken,
+                'phpsessid' => session_id(),
+                'user' => $this->modelAuth->AccountInfo($data['username']),
+            ]);
+            return;
+            //Đăng nhập WEB
+        } else {
+            $agent = "WEB";
+            $refreshToken = isset($_COOKIE['refresh_token']) ? $_COOKIE['refresh_token'] : null;
+            if (!$refreshToken) {
+                $this->sendResponse(400, ['error' => 'Refresh Token không được cung cấp']);
+                return;
+            }
+            $stmt = $this->jwt->VerifiRefreshToken($refreshToken, $data['username']);
+            if (!$stmt) {
+                $this->sendResponse(401, ['error' => 'Refresh Token không hợp lệ']);
+                return;
+            }
+            $this->createSession($data['username'], $_SERVER['HTTP_USER_AGENT']);
+            $this->sendResponse(200, ['success' => 'Refresh Token thành công']);
             return;
         }
-        $stmt = $this->jwt->VerifiRefreshToken($refreshToken, $data['username']);
-        if (!$stmt) {
-            $this->sendResponse(401, ['error' => 'Refresh Token không hợp lệ']);
-            return;
-        }
-        $this->createSession($data['username'], $_SERVER['HTTP_USER_AGENT']);
-        $this->sendResponse(200, ['success' => 'Refresh Token thành công']);
-        return;
     }
 
     public function logout()
