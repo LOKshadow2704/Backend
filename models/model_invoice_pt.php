@@ -42,7 +42,7 @@ class model_invoice_pt{
                 $this->NgayHetHan
             ]);
             if($result){
-                return $connect->lastInsertId();
+                return intval($connect->lastInsertId());
             }else{
                 return false;
             }

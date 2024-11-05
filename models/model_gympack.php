@@ -40,7 +40,7 @@
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if($result){
                     $this->db->disconnect_db($connect);
-                    return $result;
+                    return $result[0];
                 }else{
                     $this->db->disconnect_db($connect);
                     return false;

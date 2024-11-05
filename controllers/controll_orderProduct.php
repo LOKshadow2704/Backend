@@ -15,7 +15,6 @@ class controll_Order extends Control
 
     public function __construct()
     {
-        parent::__construct();
         $this->model_product = new model_product();
         $this->model_order = new model_order();
         $this->model_order_info = new model_orderInfo();
@@ -91,16 +90,16 @@ class controll_Order extends Control
                 //Thao tác thanh toán
                 if ($ExeOrder && $data["HinhThucThanhToan"] == 2) {
                     $payment_data = [];
-                    $payment_data['IDDonHang'] = $ExeOrder;
+                    $payment_data['ID'] = $ExeOrder;
                     $payment_data['amount'] = $amount;
                     $payment_data['name'] = $data_user['HoTen'];
                     $payment_data['phone'] = $data_user['SDT'];
                     //Tạo link thanh toán
                     $payment = new Controll_payment();
-                    $ExePayment = $payment->create($payment_data, $agent , "product");
+                    $ExePayment = $payment->create($payment_data, $agent, "product");
                     if ($ExePayment) {
                         http_response_code(200);
-                        echo json_encode(["success" => $ExePayment]);
+                        echo json_encode(["success" => $ExePayment['checkoutUrl']]);
                         return;
                     } else {
                         http_response_code(403);
@@ -144,7 +143,7 @@ class controll_Order extends Control
                 $username = $this->jwt->getUserName($jwt);
                 $userId = $this->modelAuth->getIDKhachhang($username);
                 $result_Purchase = $this->model_order->get_All_Purchase($userId);
-                if(empty($result_Purchase)){
+                if (empty($result_Purchase)) {
                     http_response_code(200);
                     echo json_encode(["orders" => "Không có đơn hàng mới"]);
                     return;
@@ -250,6 +249,49 @@ class controll_Order extends Control
                     echo json_encode(['error' => 'Cập nhật không thành công']);
                     return;
                 }
+            } else {
+                http_response_code(403);
+                echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
+
+    public function payment_check()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === "POST") {
+            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $agent = "";
+            $data = json_decode(file_get_contents('php://input'), true);
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
+            if ($verify) {
+                $payment = new Controll_payment();
+                $payment_data = $payment->getPaymentLinkInformation($data['orderCode']);
+                $result = $payment->verifyPaymentWebhookData($payment_data);
+                if ($result["status"] == "PAID") {
+                    $this->model_order->UpdatePaymentStatus($payment_data["data"]["orderCode"]);
+                    $cart = new model_cart();
+                    $username = $this->jwt->getUserName($jwt);
+                    $cusID = $this->modelAuth->getIDKhachhang($username);
+                    foreach ($data["products"] as $item) {
+                        $cart->deleteItem($item['IDSanPham'], $cusID);
+                    }
+                } elseif ($result["status"] == "CANCELLED") {
+                    $this->model_order->delete_order($payment_data["data"]["orderCode"]);
+                }
+                http_response_code(200);
+                echo json_encode(['status' => $result["status"]]);
+                return;
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);

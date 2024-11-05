@@ -120,6 +120,10 @@ $routes = [
             $ptController = new controll_PT();
             $ptController->Register_PT();
         },
+        '/Backend/personalTrainer/payment' => function () {
+            $ptController = new controll_PT();
+            $ptController->Register_PT();
+        },
     ],
 
     // Gym Package Routes
@@ -128,26 +132,30 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->controll_get_All_gympack();
         },
-        '/Backend/gympack/info' => function () {
-            $gympackController = new controll_gympack();
-            $gympackController->controll_get_All_gympack();
-        },
-        '/Backend/gympack/update' => function () {//---------------Đã chỉnh sửa
+        '/Backend/gympack/update' => function () {
             $gympackController = new controll_gympack();
             $gympackController->controll_update_gympack();
         },
-        '/Backend/order-gympack' => function () {
+        '/Backend/gympack/register' => function () { //---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
-            $gympackController->controll_Register();
+            $gympackController->Register();
         },
-        '/Backend/gympack/user' => function () {
+        '/Backend/gympack/user' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
-            $gympackController->control_get_PackByUser();
+            $gympackController->get_UserPack();
         },
         '/Backend/gympack/manager/register' => function () {
             $gympackController = new controll_gympack();
             $gympackController->control_Register_PackByEmployee();
         },
+        '/Backend/gympack/invoice' => function () {
+            $gympackController = new controll_gympack();
+        },
+        '/Backend/gympack/payment' => function () {
+            $gympackController = new controll_gympack();
+            $gympackController->control_Register_PackByEmployee();
+        },
+
     ],
 
     // Cart Routes
@@ -188,25 +196,9 @@ $routes = [
             $orderController = new controll_Order();
             $orderController->Control_PurchaseOrder_confirm();
         },
-    ],
-
-    // Payment Routes
-    'payment' => [
-        '/Backend/WEB/products/success' => function () {
-            $paymentController = new Controll_payment();
-            $paymentController->returnPayment();
-        },
-        '/Backend/MOBILE_GOATFITNESS/products/success' => function () {
-            $paymentController = new Controll_payment();
-            $paymentController->returnPayment();
-        },
-        '/Backend/WEB/products/cancle' => function () {
-            $paymentController = new Controll_payment();
-            $paymentController->returnPayment();
-        },
-        '/Backend/MOBILE_GOATFITNESS/products/cancle' => function () {
-            $paymentController = new Controll_payment();
-            $paymentController->returnPayment();
+        '/Backend/order/payment' => function () {//---------------Đã chỉnh sửa
+            $orderController = new controll_Order();
+            $orderController->payment_check();
         },
     ],
 

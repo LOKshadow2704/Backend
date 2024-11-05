@@ -25,13 +25,13 @@
         public function get_One_personalTrainer($ptID){
             $connect = $this -> db ->connect_db();
             if($connect){
-                $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.DanhGia , p.ChungChi FROM khachhang as k left join hlv as p on p.IDHLV = k.IDHLV left join taikhoan as c on c.TenDangNhap = k.TenDangNhap WHERE k.IDHLV = ?';
+                $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang  , p.ChungChi FROM khachhang as k left join hlv as p on p.IDHLV = k.IDHLV left join taikhoan as c on c.TenDangNhap = k.TenDangNhap WHERE k.IDHLV = ?';
                 $stmt = $connect->prepare(  $query );
                 $stmt->execute([$ptID]);
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if($result){
                     $this->db->disconnect_db($connect);
-                    return $result;
+                    return $result[0];
                 }else{
                     $this->db->disconnect_db($connect);
                     return false;

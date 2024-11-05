@@ -154,7 +154,7 @@ class PayOS
                     throw new Exception(ErrorMessage::DATA_NOT_INTEGRITY, ErrorCode::DATA_NOT_INTEGRITY);
                 }
                 if ($paymentLinkRes['data']) {
-                    return $paymentLinkRes['data'];
+                    return $paymentLinkRes;
                 }
             }
             throw new Exception($paymentLinkRes['desc'], $paymentLinkRes['code']);

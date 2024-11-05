@@ -33,28 +33,33 @@ class controll_gympack extends Control
         }
     }
 
-    public static function controll_Register()
+    public function Register()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             $data = json_decode(file_get_contents('php://input'), true);
-            //Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
             if ($verify) {
-                $user = new model_auth();
-                $username = $Auth->getUserName($jwt);
-                $cusID = $user->getIDKhachhang($username);
-                //Kiểm tra tồn tại gói tập của user chưa
+                $username = $this->jwt->getUserName($jwt);
+                $cusID = $this->modelAuth->getIDKhachhang($username);
                 $invoice_pack = new Model_invoice_pack();
-                $check = $invoice_pack->Exe_get_Pack_byKhachHang($cusID);
+                $check = $invoice_pack->get_PackofCustomer($cusID);
+                $user = $this->modelAuth->AccountInfo($username);
+                $pack_register_info = $this->model_gympack->get_Info_Pack($data['IDGoiTap']);
+                $amount = $pack_register_info['Gia'];
                 if (count($check) == 1) {
                     http_response_code(403);
                     echo json_encode(['error' => "Đã tồn tại gói tập"]);
                 } elseif (count($check) == 0) {
                     if ($data["HinhThucThanhToan"] == 1) {
-                        $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $data["ThoiHan"]);
+                        $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
                         $result = $new_Invoice->add_Invoice();
                         if ($result) {
                             http_response_code(200);
@@ -64,15 +69,19 @@ class controll_gympack extends Control
                             echo json_encode(['error' => "Đăng ký không thành công!"]);
                         }
                     } elseif ($data["HinhThucThanhToan"] == 2) {
-                        $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $data["ThoiHan"]);
+                        $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
                         $result = $new_Invoice->add_Invoice();
                         if ($result) {
-                            $payment = new Payment();
-                            $link = "gympack";
-                            $ExePayment = $payment->create($data["amount"], $result, $link);
+                            $payment_data = [];
+                            $payment_data['ID'] = $result;
+                            $payment_data['amount'] = $amount;
+                            $payment_data['name'] = $user['HoTen'];
+                            $payment_data['phone'] = $user['SDT'];
+                            $payment = new Controll_payment();
+                            $ExePayment = $payment->create($payment_data, $agent, "gympack");
                             if ($ExePayment) {
                                 http_response_code(200);
-                                echo json_encode(['success' => $ExePayment]);
+                                echo json_encode(['success' => $ExePayment['checkoutUrl']]);
                             } else {
                                 http_response_code(403);
                                 echo json_encode(['error' => 'Không thể thanh toán']);
@@ -93,26 +102,28 @@ class controll_gympack extends Control
         }
     }
 
-    public static function control_get_PackByUser()
+    public function get_UserPack()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt , $agent);
             if ($verify) {
-                $user = new model_auth();
-                $username = $Auth->getUserName($jwt);
-                $cusID = $user->getIDKhachhang($username);
+                $username = $this->jwt->getUserName($jwt);
+                $cusID = $this->modelAuth->getIDKhachhang($username);
                 //Kiểm tra tồn tại gói tập của user chưa
                 $invoice_pack = new Model_invoice_pack();
-                $check = $invoice_pack->Exe_get_Pack_byKhachHang($cusID);
+                $check = $invoice_pack->get_PackofCustomer($cusID);
                 if (count($check) == 1) {
-                    $pack = new model_gympack();
-                    $info = $pack->get_Info_Pack($check[0]["IDGoiTap"]);
+                    $info = $this->model_gympack->get_Info_Pack($check[0]["IDGoiTap"]);
                     if ($info) {
-                        $check[0]["info"] = $info[0];
+                        $check[0]["info"] = $info;
                         $check = $check[0];
                         http_response_code(200);
                         echo json_encode($check);
@@ -287,5 +298,6 @@ class controll_gympack extends Control
             echo json_encode(['error' => 'Đường dẫn không tồn tại.']);
         }
     }
+
 
 }
