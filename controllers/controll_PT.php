@@ -62,24 +62,65 @@ class controll_PT extends Control
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             $data = json_decode(file_get_contents('php://input'), true);
             $agent = "";
+
             if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
                 $agent = "MOBILE_GOATFITNESS";
             } else {
                 $agent = "WEB";
             }
+
             $verify = $this->jwt->verifyJWT($jwt, $agent);
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);
                 $customer = $this->modelAuth->KhachHang($username);
                 $user = $this->modelAuth->AccountInfo($this->jwt->getUsername($jwt));
+
+                // Kiểm tra nếu IDHLV không trùng với ID khách hàng
                 if ($customer && $customer["IDHLV"] != $data["IDHLV"]) {
-                    //Kiểm tra trùng lặp giờ
+
+                    // Kiểm tra giờ làm việc (từ 8:00 đến 22:00)
+                    $startDate = new DateTime($data['StartDate']);
+                    $endDate = new DateTime($data['EndDate']);
+                    $currentDate = new DateTime();
+                    $currentHour = $currentDate->format('H');
+
+                    // Kiểm tra nếu thời gian bắt đầu không được trễ hơn giờ hiện tại
+                    if ($startDate < $currentDate || ($startDate->format('H') < $currentHour && $startDate < $currentDate)) {
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Thời gian bắt đầu không hợp lệ.']);
+                        exit();
+                    }
+
+                    // Kiểm tra thời gian kết thúc phải cách thời gian bắt đầu ít nhất 1 giờ
+                    $interval = $startDate->diff($endDate);
+                    if ($interval->h < 1) {
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Ngày kết thúc phải cách ngày bắt đầu ít nhất 1 giờ.']);
+                        exit();
+                    }
+
+                    // Kiểm tra thời gian kết thúc phải trong ngày
+                    $endHour = $endDate->format('H');
+                    if ($endHour > 22) {
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Giờ kết thúc phải không quá 22:00.']);
+                        exit();
+                    }
+
+                    // Kiểm tra giờ làm việc trong khoảng 8:00 - 22:00
+                    $startHour = $startDate->format('H');
+                    if ($startHour < 8 || $startHour > 22) {
+                        echo $startHour;
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Giờ làm việc phải từ 8:00 đến 22:00.']);
+                        exit();
+                    }
+
+                    // Kiểm tra trùng lặp giờ
                     if (count($this->invoice_pt->checkTime($data["StartDate"], $data["EndDate"])) == 0) {
                         $pt = $this->pt->get_One_personalTrainer($data["IDHLV"]);
-                        $startDate = new DateTime($data['StartDate']);
-                        $endDate = new DateTime($data['EndDate']);
-                        $interval = $startDate->diff($endDate)->h;
-                        $amount = $pt["GiaThue"] * $interval;
+                        $amount = $pt["GiaThue"] * $interval->h;
+
                         if ($data["HinhThucThanhToan"] == 1) {
                             $newInvoi = new model_invoice_pt(null, $customer["IDKhachHang"], $data["IDHLV"], $data["StartDate"], $data["EndDate"]);
                             $exeAdd = $newInvoi->add_Invoice();
@@ -125,4 +166,7 @@ class controll_PT extends Control
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
+
+
+
 }

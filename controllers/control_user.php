@@ -55,36 +55,40 @@ class UserController extends Control
                 $username = $this->jwt->getUserName($jwt);
                 //Kiểm tra null
                 $update_data = array();
-                if (isset($data['name']) && !empty($data['name'])) {
-                    $update_data['HoTen'] = $data['name'];
+                if (isset($data['HoTen']) && !empty($data['HoTen'])) {
+                    $update_data['HoTen'] = $data['HoTen'];
                 }
 
-                if (isset($data['email']) && !empty($data['email'])) {
-                    $update_data['Email'] = $data['email'];
+                if (isset($data['Email']) && !empty($data['Email'])) {
+                    $update_data['Email'] = $data['Email'];
                 }
 
-                if (isset($data['address']) && !empty($data['address'])) {
-                    $update_data['DiaChi'] = $data['address'];
+                if (isset($data['DiaChi']) && !empty($data['DiaChi'])) {
+                    $update_data['DiaChi'] = $data['DiaChi'];
                 }
 
-                if (isset($data['phoneNum']) && !empty($data['phoneNum'])) {
-                    $update_data['SDT'] = $data['phoneNum'];
+                if (isset($data['SDT']) && !empty($data['SDT'])) {
+                    $update_data['SDT'] = $data['SDT'];
                 }
                 $result = $this->modelAuth->UpdateUserInfo($update_data, $username);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Update thành công']);
+                    return;
                 } else {
                     http_response_code(500);
                     echo json_encode(['error' => 'Update thất bại']);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 

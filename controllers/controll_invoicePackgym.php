@@ -155,15 +155,9 @@ class controll_invoicePackgym extends Control
                 $payment_data = $payment->getPaymentLinkInformation($data['orderCode']);
                 $result = $payment->verifyPaymentWebhookData($payment_data);
                 if ($result["status"] == "PAID") {
-                    $this->model_gympack->UpdatePaymentStatus($payment_data["data"]["orderCode"]);
-                    $cart = new model_cart();
-                    $username = $this->jwt->getUserName($jwt);
-                    $cusID = $this->modelAuth->getIDKhachhang($username);
-                    foreach ($data["products"] as $item) {
-                        $cart->deleteItem($item['IDSanPham'], $cusID);
-                    }
+                    $this->invoice->updateInvoiceStatus($payment_data["data"]["orderCode"]);
                 } elseif ($result["status"] == "CANCELLED") {
-                    $this->model_order->delete_order($payment_data["data"]["orderCode"]);
+                    $this->invoice->delete_invoice_packgym($payment_data["data"]["orderCode"]);
                 }
                 http_response_code(200);
                 echo json_encode(['status' => $result["status"]]);

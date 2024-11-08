@@ -11,6 +11,9 @@ require_once(__DIR__ . '/../controllers/controll_payment.php');
 // require_once(__DIR__ . '/../controllers/controll_homecontent.php');
 require_once(__DIR__ . '/../controllers/controll_checkin.php');
 require_once(__DIR__ . '/../controllers/control_user.php');
+require_once(__DIR__ . '/../controllers/controll_invoice_pt.php');
+require_once(__DIR__ . '/../controllers/controll_invoicePackgym.php');
+require_once(__DIR__ . '/../middlewares/limit_Request.php');
 
 $routes = [
     // Account Routes
@@ -120,9 +123,14 @@ $routes = [
             $ptController = new controll_PT();
             $ptController->Register_PT();
         },
+        '/Backend/personalTrainer/practiceSchedule' => function () {
+            // Khách hàng lấy lịch tập
+            $ptController = new controll_invoice_pt();
+            $ptController->get_practiceSchedule();
+        },
         '/Backend/personalTrainer/payment' => function () {
-            $ptController = new controll_PT();
-            $ptController->Register_PT();
+            $ptController = new controll_invoice_pt();
+            $ptController->payment_check();
         },
     ],
 
@@ -152,8 +160,8 @@ $routes = [
             $gympackController = new controll_gympack();
         },
         '/Backend/gympack/payment' => function () {
-            $gympackController = new controll_gympack();
-            $gympackController->control_Register_PackByEmployee();
+            $gympackController = new controll_invoicePackgym();
+            $gympackController->payment_check();
         },
 
     ],
@@ -168,7 +176,7 @@ $routes = [
             $cartController = new controll_cart();
             $cartController->controll_AddtoCart();
         },
-        '/Backend/cart/updateQuan' => function () {
+        '/Backend/cart/updateQuan' => function () {//---------------Đã chỉnh sửa
             $cartController = new controll_cart();
             $cartController->updateQuantity();
         },
@@ -224,7 +232,11 @@ function handleRequest($url)
     global $routes;
     $parts = explode('?', $url);
     $route = $parts[0];
-
+    // Khởi tạo middleware với giới hạn 4 lần mỗi giây
+    $rateLimitMiddleware = new RateLimitMiddleware(10, 1);
+    if (!$rateLimitMiddleware->handle($route)) {
+        return;
+    }
     if (isset($parts[1])) {
         handleRequestWithParams($route, $parts[1]);
     } else {
@@ -243,7 +255,10 @@ function handleRequestWithParams($route, $queryParams)
 {
     global $routes;
     parse_str($queryParams, $params);
-
+    $rateLimitMiddleware = new RateLimitMiddleware(10, 1);
+    if (!$rateLimitMiddleware->handle($route)) {
+        return;
+    }
     foreach ($routes as $group => $groupRoutes) {
         if (isset($groupRoutes[$route])) {
             $groupRoutes[$route]($params);

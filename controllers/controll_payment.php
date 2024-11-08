@@ -17,10 +17,13 @@ class Controll_payment extends PayOS
             switch ($type) {
                 case "personal_trainer":
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/PersonalTrainer/Payment";
+                    break;
                 case "gympack":
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/PackGym/Payment";
+                    break;
                 case "product":
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/Products/Payment";
+                    break;
             }
         } else {
             $YOUR_DOMAIN = getenv('host_order');

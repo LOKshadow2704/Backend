@@ -82,6 +82,24 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
+
+            if (isset($update_data['SDT'])) {
+
+                $sdt = $update_data['SDT'];
+
+
+                $checkQuery = "SELECT COUNT(*) FROM TaiKhoan WHERE SDT = ? AND TenDangNhap != ?";
+                $checkStmt = $connect->prepare($checkQuery);
+                $checkStmt->execute([$sdt, $username]);
+                $count = $checkStmt->fetchColumn();
+
+
+                if ($count > 0) {
+                    return false;
+                }
+            }
+
+
             $query = "UPDATE TaiKhoan SET";
             $query_value = array();
             foreach ($update_data as $key => $value) {
@@ -89,14 +107,17 @@ class model_auth
                 $query_value[] = $value;
             }
             $query = rtrim($query, ',');
-            // Loại bỏ dấu phẩy cuối cùng trong câu truy vấn
             $query .= " WHERE TenDangNhap = ?";
             $query_value[] = $username;
+
             $stmt = $connect->prepare($query);
             $result = $stmt->execute($query_value);
-            return $result;
+            return  $result;
         }
+
+        return false;
     }
+
 
     public function UpdatePassword($currentPW, $newPW, $username)
     {
@@ -178,7 +199,7 @@ class model_auth
             if (!$result) {
                 throw new Exception('Lỗi khi thêm tài khoản vài CSDL.');
             }
-            $query_cus = "INSERT INTO khachhang VALUE( null , ?, null)";
+            $query_cus = "INSERT INTO khachhang VALUE( null , ?, null ,null)";
             $stmt_cus = $connect->prepare($query_cus);
             $result2 = $stmt_cus->execute([$data["username"]]);
             if (!$result2) {

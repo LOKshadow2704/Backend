@@ -59,7 +59,7 @@ class Model_invoice_pack
         }
     }
 
-    private function ExeUpdateInvoiceStatus($IDHoaDon)
+    public function updateInvoiceStatus($IDHoaDon)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
@@ -128,8 +128,4 @@ class Model_invoice_pack
     }
 
 
-    public function updateInvoiceStatus($IDHoaDon)
-    {
-        return $this->ExeUpdateInvoiceStatus($IDHoaDon);
-    }
 }
