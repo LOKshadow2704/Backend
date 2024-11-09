@@ -133,11 +133,13 @@ class controll_cart extends Control
             $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
-            if (session_status() === PHP_SESSION_NONE) {
-                session_id($_SERVER['HTTP_PHPSESSID']);
-                session_start();
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt, $_SERVER['HTTP_USER_AGENT']);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             $IDSaNPham = $data['IDSanPham'];
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);

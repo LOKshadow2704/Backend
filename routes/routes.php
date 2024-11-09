@@ -27,9 +27,9 @@ $routes = [
             $authController = new AuthController();
             $authController->login();
         },
-        '/Backend/login/refresh-token' => function () {
+        '/Backend/login/refresh-token' => function () {//---------------Đã chỉnh sửa
             $authController = new AuthController();
-            $authController->loginWithRT(); // Chưa sửa
+            $authController->loginWithRT();
         },
         '/Backend/logout' => function () { //---------------Đã chỉnh sửa
             $authController = new AuthController();
@@ -59,6 +59,30 @@ $routes = [
             $userController = new UserController();
             $userController->get_user_training();
         },
+
+
+        // checkin
+        // checkout
+    ],
+    'employee' => [
+        '/Backend/employee/dashboard' => function () {
+            $checkinController = new controll_checkin();
+            $checkinController->get_statistical();
+        },
+        '/Backend/products/employee/all' => function () { //---------------Đã chỉnh sửa
+            $productController = new controll_product();
+            $productController->getAll_products_byManeger();
+        },
+        '/Backend/gympack/employee/register' => function () {
+            $gympackController = new controll_gympack();
+            $gympackController->control_Register_PackByEmployee();
+        },
+    ],
+    'admin' => [
+        '/Backend/admin/dashboard' => function () {
+            $checkinController = new controll_checkin();
+            $checkinController->get_statistical();
+        },
         '/Backend/admin/getAllAccount' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->get_Account();
@@ -67,25 +91,14 @@ $routes = [
             $authController = new UserController();
             $authController->Update_Account_ByAdmin();
         },
-        '/Backend/employee/working' => function () {
-            $authController = new AuthController();
-            $authController->get_Employee_Working();
-        },
-        // checkin
-        // checkout
-
     ],
-
     // Product Routes
     'product' => [
         '/Backend/products' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
             $productController->getAll_products();
         },
-        '/Backend/products/manager' => function () { //---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->getAll_products_byManeger();
-        },
+
         '/Backend/products/info' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
             $productController->getOne_products();
@@ -152,10 +165,6 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->get_UserPack();
         },
-        '/Backend/gympack/manager/register' => function () {
-            $gympackController = new controll_gympack();
-            $gympackController->control_Register_PackByEmployee();
-        },
         '/Backend/gympack/invoice' => function () {
             $gympackController = new controll_gympack();
         },
@@ -220,10 +229,7 @@ $routes = [
 
     // Employee Routes
     'employee' => [
-        '/Backend/employee/statistical' => function () {
-            $checkinController = new controll_checkin();
-            $checkinController->get_statistical();
-        },
+
     ],
 ];
 
@@ -232,7 +238,7 @@ function handleRequest($url)
     global $routes;
     $parts = explode('?', $url);
     $route = $parts[0];
-    // Khởi tạo middleware với giới hạn 4 lần mỗi giây
+    // Khởi tạo middleware với giới hạn 10 lần mỗi giây
     $rateLimitMiddleware = new RateLimitMiddleware(10, 1);
     if (!$rateLimitMiddleware->handle($route)) {
         return;

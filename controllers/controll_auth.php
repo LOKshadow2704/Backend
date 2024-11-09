@@ -113,7 +113,7 @@ class AuthController extends Control
         } else {
             $agent = "WEB";
             $refreshToken = isset($_COOKIE['refresh_token']) ? $_COOKIE['refresh_token'] : null;
-            if (!$refreshToken) {
+            if (empty($refreshToken)) {
                 $this->sendResponse(400, ['error' => 'Refresh Token không được cung cấp']);
                 return;
             }
