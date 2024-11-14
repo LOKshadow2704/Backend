@@ -65,7 +65,7 @@ $routes = [
         // checkout
     ],
     'employee' => [
-        '/Backend/employee/dashboard' => function () {
+        '/Backend/employee/dashboard' => function () {//---------------Đã chỉnh sửa
             $checkinController = new controll_checkin();
             $checkinController->get_statistical();
         },
@@ -73,9 +73,21 @@ $routes = [
             $productController = new controll_product();
             $productController->getAll_products_byManeger();
         },
-        '/Backend/gympack/employee/register' => function () {
+        '/Backend/employee/user/gympack' => function () { //---------------Đã chỉnh sửa
+            $productController = new UserController();
+            $productController->gympack_customer();
+        },
+        '/Backend/employee/gympack/register' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
-            $gympackController->control_Register_PackByEmployee();
+            $gympackController->register_packByEmployee();
+        },
+        '/Backend/employee/gympack/payment/confirm' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_invoicePackgym();
+            $gympackController->update_invoice_status();
+        },
+        '/Backend/employee/gympack/price/update' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_gympack();
+            $gympackController->update_price();
         },
     ],
     'admin' => [
@@ -153,10 +165,6 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->controll_get_All_gympack();
         },
-        '/Backend/gympack/update' => function () {
-            $gympackController = new controll_gympack();
-            $gympackController->controll_update_gympack();
-        },
         '/Backend/gympack/register' => function () { //---------------Đã chỉnh sửa
             $gympackController = new controll_gympack();
             $gympackController->Register();
@@ -165,10 +173,7 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->get_UserPack();
         },
-        '/Backend/gympack/invoice' => function () {
-            $gympackController = new controll_gympack();
-        },
-        '/Backend/gympack/payment' => function () {
+        '/Backend/gympack/payment' => function () {//---------------Đã chỉnh sửa
             $gympackController = new controll_invoicePackgym();
             $gympackController->payment_check();
         },
@@ -227,10 +232,6 @@ $routes = [
         },
     ],
 
-    // Employee Routes
-    'employee' => [
-
-    ],
 ];
 
 function handleRequest($url)

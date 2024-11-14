@@ -280,12 +280,12 @@ class controll_Order extends Control
                 $result = $payment->verifyPaymentWebhookData($payment_data);
                 if ($result["status"] == "PAID") {
                     $this->model_order->UpdatePaymentStatus($payment_data["data"]["orderCode"]);
-                    $cart = new model_cart();
-                    $username = $this->jwt->getUserName($jwt);
-                    $cusID = $this->modelAuth->getIDKhachhang($username);
-                    foreach ($data["products"] as $item) {
-                        $cart->deleteItem($item['IDSanPham'], $cusID);
-                    }
+                    // $cart = new model_cart();
+                    // $username = $this->jwt->getUserName($jwt);
+                    // $cusID = $this->modelAuth->getIDKhachhang($username);
+                    // foreach ($data["products"] as $item) {
+                    //     $cart->deleteItem($item['IDSanPham'], $cusID);
+                    // }
                 } elseif ($result["status"] == "CANCELLED") {
                     $this->model_order->delete_order($payment_data["data"]["orderCode"]);
                 }
@@ -301,6 +301,26 @@ class controll_Order extends Control
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
             return;
+        }
+    }
+
+    public function get_statistical()
+    {
+        $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+        $jwt = trim(str_replace('Bearer ', '', $jwt));
+        $agent = "";
+        if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+            $agent = "MOBILE_GOATFITNESS";
+        } else {
+            $agent = "WEB";
+        }
+        $verify = $this->jwt->verifyJWT($jwt, $agent);
+        $role = $this->jwt->getRole();
+        if ($verify && $role == 2) {
+            $result_data = $this->model_order->purchase();
+            return $result_data;
+        } else {
+            return false;
         }
     }
 }

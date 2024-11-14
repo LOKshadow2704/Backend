@@ -310,9 +310,42 @@ class UserController extends Control
             }
             $verify = $this->jwt->verifyJWT($jwt, $agent);
             $role = $this->jwt->getRole();
-            if ($verify && $role == "1" ) {
+            if ($verify && $role == "1") {
                 $user = new model_auth();
                 $result = $user->Admin_Update_Account($data);
+                if ($result) {
+                    http_response_code(200);
+                    echo json_encode($result);
+                } else {
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Lỗi hệ thống']);
+                }
+            } else {
+                http_response_code(403);
+                echo json_encode(['error' => 'Lỗi xác thực']);
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
+    }
+
+    public function gympack_customer()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            //Xác thực
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
+            $role = $this->jwt->getRole();
+            if ($verify && $role == "2") {
+                $result = $this->modelAuth->get_gympack_customer();
                 if ($result) {
                     http_response_code(200);
                     echo json_encode($result);

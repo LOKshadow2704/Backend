@@ -112,7 +112,7 @@ class model_auth
 
             $stmt = $connect->prepare($query);
             $result = $stmt->execute($query_value);
-            return  $result;
+            return $result;
         }
 
         return false;
@@ -295,6 +295,18 @@ class model_auth
             $query = "UPDATE TaiKhoan SET phpsessid = ? WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$phpSessionId, $username]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
+    }
+
+    public function get_gympack_customer()
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT a.TenDangNhap  , a.HoTen , a.DiaChi , a.Email , a.SDT , a.avt , p.IDHoaDon , p.NgayDangKy , p.NgayHetHan , p.TrangThaiThanhToan FROM `khachhang` AS c LEFT JOIN `hoadonthuegoitap` as p ON c.IDKhachHang = p.IDKhachHang INNER JOIN `taikhoan` as a ON c.TenDangNhap = a.TenDangNhap WHERE a.IDVaiTro = 3";
+            $stmt = $connect->prepare($query);
+            $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         }

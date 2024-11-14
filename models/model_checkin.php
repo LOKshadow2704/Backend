@@ -8,7 +8,7 @@
         public function statistical(){
             $connect = $this -> db ->connect_db();
             if($connect){
-                $query = "SELECT DATE_FORMAT(ThoiGian, '%Y-%m') AS Thang, COUNT(*) AS SoLanDangNhap FROM checkin GROUP BY Thang ORDER BY `Thang` DESC" ;
+                $query = "SELECT ThoiGian, CheckOut FROM checkin ORDER BY `ThoiGian` DESC" ;
                 $stmt = $connect->prepare(  $query );
                 $stmt->execute();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

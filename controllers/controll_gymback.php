@@ -45,7 +45,7 @@ class controll_gympack extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);
                 $cusID = $this->modelAuth->getIDKhachhang($username);
@@ -113,7 +113,7 @@ class controll_gympack extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);
                 $cusID = $this->modelAuth->getIDKhachhang($username);
@@ -143,30 +143,35 @@ class controll_gympack extends Control
         }
     }
 
-    public static function control_Register_PackByEmployee()
+    public function register_packByEmployee()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             $data = json_decode(file_get_contents('php://input'), true);
             //Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             if ($verify) {
-                $user = new model_auth();
-                $username = $user->getUserNamebyPhoneN($data["SDT"]);
-
+                $username = $this->modelAuth->UserNamebyPhoneN($data["SDT"]);
                 if ($username) {
-                    $cusID = $user->getIDKhachhang($username);
+                    $cusID = $this->modelAuth->getIDKhachhang($username);
                     if ($cusID) {
                         //Kiểm tra tồn tại gói tập của user chưa
                         $invoice_pack = new Model_invoice_pack();
-                        $check = $invoice_pack->Exe_get_Pack_byKhachHang($cusID);
+                        $check = $invoice_pack->get_PackofCustomer($cusID);
                         if (count($check) == 1) {
                             http_response_code(403);
                             echo json_encode(['error' => "Đã tồn tại gói tập"]);
                         } elseif (count($check) == 0) {
-                            $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $data["ThoiHan"], "Đã Thanh Toán");
+                            $pack = new model_gympack();
+                            $timeline = $pack->get_Info_Pack($data["IDGoiTap"])['ThoiHan'];
+                            $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $timeline, "Đã Thanh Toán");
                             $result = $new_Invoice->add_Invoice();
                             if ($result) {
                                 http_response_code(200);
@@ -192,7 +197,7 @@ class controll_gympack extends Control
         }
     }
 
-    public function controll_update_gympack()
+    public function update_price()
     {
         if ($_SERVER['REQUEST_METHOD'] === "PUT") {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
@@ -206,9 +211,9 @@ class controll_gympack extends Control
                 $agent = "WEB";
             }
             $verify = $this->jwt->verifyJWT($jwt , $agent);
-            if ($verify) {
-                $pack = new model_gympack();
-                $result = $pack->Update_Pack($data["Gia"], $data["IDGoiTap"]);
+            $role = $this->jwt->getRole();
+            if ($verify && $role == 2) {
+                $result = $this->model_gympack->update_price($data["Gia"], $data["IDGoiTap"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => "Cập nhật thành công"]);
@@ -222,82 +227,5 @@ class controll_gympack extends Control
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
-
-    public static function controll_add_gympack()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $data = json_decode(file_get_contents('php://input'), true);
-
-            // Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
-
-            if ($verify) {
-                // Kiểm tra dữ liệu đầu vào
-                if (isset($data['TenGoiTap']) && isset($data['ThoiHan']) && isset($data['Gia'])) {
-                    $gympack = new model_gympack();
-                    $result = $gympack->add_Pack($data);
-
-                    if ($result) {
-                        http_response_code(200); // Created
-                        echo json_encode(['success' => 'Gói tập đã được thêm thành công!']);
-                    } else {
-                        http_response_code(500); // Internal Server Error
-                        echo json_encode(['error' => 'Không thể thêm gói tập.']);
-                    }
-                } else {
-                    http_response_code(400); // Bad Request
-                    echo json_encode(['error' => 'Dữ liệu đầu vào không hợp lệ.']);
-                }
-            } else {
-                http_response_code(403); // Forbidden
-                echo json_encode(['error' => 'Lỗi xác thực.']);
-            }
-        } else {
-            http_response_code(404); // Not Found
-            echo json_encode(['error' => 'Đường dẫn không tồn tại.']);
-        }
-    }
-
-    public static function controll_delete_gympack()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === "DELETE") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-
-            // Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
-
-            if ($verify) {
-                // Lấy ID gói tập từ request
-                $data = json_decode(file_get_contents('php://input'), true);
-                if (isset($data['IDGoiTap'])) {
-                    $gympack = new model_gympack();
-                    $result = $gympack->delete_Pack($data['IDGoiTap']);
-
-                    if ($result) {
-                        http_response_code(200); // OK
-                        echo json_encode(['success' => 'Gói tập đã được xóa thành công!']);
-                    } else {
-                        http_response_code(500); // Internal Server Error
-                        echo json_encode(['error' => 'Không thể xóa gói tập.']);
-                    }
-                } else {
-                    http_response_code(400); // Bad Request
-                    echo json_encode(['error' => 'ID gói tập không hợp lệ.']);
-                }
-            } else {
-                http_response_code(403); // Forbidden
-                echo json_encode(['error' => 'Lỗi xác thực.']);
-            }
-        } else {
-            http_response_code(404); // Not Found
-            echo json_encode(['error' => 'Đường dẫn không tồn tại.']);
-        }
-    }
-
 
 }

@@ -29,14 +29,11 @@ class Controll_payment extends PayOS
             $YOUR_DOMAIN = getenv('host_order');
             switch ($type) {
                 case "product":
-                    $success_url = $YOUR_DOMAIN . "/OrderPayment";
-                    $cancle_url = $YOUR_DOMAIN . "/PaymentCancle";
+                    $success_url = $YOUR_DOMAIN . "/Order/Payment";
                 case "personal_trainer":
-                    $success_url = $YOUR_DOMAIN . "/OrderPayment";
-                    $cancle_url = $YOUR_DOMAIN . "/PaymentCancle";
+                    $success_url = $YOUR_DOMAIN . "/GY/Payment";
                 case "gympack":
-                    $success_url = $YOUR_DOMAIN . "/OrderPayment";
-                    $cancle_url = $YOUR_DOMAIN . "/PaymentCancle";
+                    $success_url = $YOUR_DOMAIN . "/PT/Payment";
             }
         }
         $data = [

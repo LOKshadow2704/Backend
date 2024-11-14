@@ -7,7 +7,7 @@ class controll_cart extends Control
 
     public function __construct()
     {
-        parent::__construct();
+        parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
         $this->model_cart = new model_cart();
     }
     public function controll_get_All_cart()
@@ -21,8 +21,7 @@ class controll_cart extends Control
             } else {
                 $agent = "WEB";
             }
-            $refresh_token = $_SERVER['HTTP_REFRESH_TOKEN'] ?? '';
-            $verify = $this->jwt->verifyJWT($jwt, $agent , $refresh_token);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             if ($verify) {
                 $username = $this->jwt->getUserName($jwt);
                 $userId = $this->modelAuth->getIDKhachhang($username);
@@ -103,13 +102,13 @@ class controll_cart extends Control
                 if (!$cartItem) {
                     throw new Exception('Sản phẩm không tồn tại trong giỏ hàng.');
                 }
-                if ($cartItem['SoLuong'] <= 1 && $data['Quantity'] < 0 ) {
+                if ($cartItem['SoLuong'] <= 1 && $data['Quantity'] < 0) {
                     http_response_code(501);
                     echo json_encode(['error' => 'Số lượng phải lớn hơn 0']);
-                    return; 
+                    return;
                 }
                 $newQuantity = $data['Quantity'] + $cartItem['SoLuong'];
-                $result = $this->model_cart->updateQuantity($data['IDSanPham'], $userId , $newQuantity);
+                $result = $this->model_cart->updateQuantity($data['IDSanPham'], $userId, $newQuantity);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['Success' => 'Cập nhật thành công']);
