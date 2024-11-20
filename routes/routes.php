@@ -14,6 +14,7 @@ require_once(__DIR__ . '/../controllers/control_user.php');
 require_once(__DIR__ . '/../controllers/controll_invoice_pt.php');
 require_once(__DIR__ . '/../controllers/controll_invoicePackgym.php');
 require_once(__DIR__ . '/../middlewares/limit_Request.php');
+require_once(__DIR__ . '/../controllers/controll_category_product.php');
 
 $routes = [
     // Account Routes
@@ -59,19 +60,17 @@ $routes = [
             $userController = new UserController();
             $userController->get_user_training();
         },
+        '/Backend/user/register_pt' => function () {//---------------Đã chỉnh sửa
+            $userController = new controll_PT();
+            $userController->applyPT();
+        }
+        
 
-
-        // checkin
-        // checkout
     ],
     'employee' => [
         '/Backend/employee/dashboard' => function () {//---------------Đã chỉnh sửa
             $checkinController = new controll_checkin();
             $checkinController->get_statistical();
-        },
-        '/Backend/products/employee/all' => function () { //---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->getAll_products_byManeger();
         },
         '/Backend/employee/user/gympack' => function () { //---------------Đã chỉnh sửa
             $productController = new UserController();
@@ -89,20 +88,75 @@ $routes = [
             $gympackController = new controll_gympack();
             $gympackController->update_price();
         },
+        '/Backend/employee/products/add' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_product();
+            $gympackController->employee_add();
+        },
+        '/Backend/employee/products/update' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_product();
+            $gympackController->employee_update();
+        },
+        '/Backend/employee/products/delete' => function () { //---------------Đã chỉnh sửa
+            $gympackController = new controll_product();
+            $gympackController->employee_delete();
+        },
+        '/Backend/employee/category/add' => function () { //---------------Đã chỉnh sửa
+            $gympackController = new controll_category_product();
+            $gympackController->employee_add();
+        },
+        '/Backend/employee/category/update' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_category_product();
+            $gympackController->employee_update();
+        },
+        '/Backend/employee/category/delete' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_category_product();
+            $gympackController->employee_delete();
+        },
+        '/Backend/employee/order/unconfirm/get' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_Order();
+            $gympackController->get_order_unconfimred();
+        },
+        '/Backend/employee/order/confirm' => function () {//---------------Đã chỉnh sửa
+            $gympackController = new controll_Order();
+            $gympackController->order_confirm();
+        },
+        '/Backend/employee/scan' => function () {
+            $gympackController = new controll_Order();
+            $gympackController->order_confirm();
+        },
+
     ],
     'admin' => [
         '/Backend/admin/dashboard' => function () {
             $checkinController = new controll_checkin();
             $checkinController->get_statistical();
         },
-        '/Backend/admin/getAllAccount' => function () {//---------------Đã chỉnh sửa
+        '/Backend/admin/account/all' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->get_Account();
         },
-        '/Backend/admin/update' => function () {//---------------Đã chỉnh sửa
+        '/Backend/admin/account/delete' => function () {
             $authController = new UserController();
             $authController->Update_Account_ByAdmin();
         },
+        '/Backend/admin/role/update' => function () {//---------------Đã chỉnh sửa
+            $authController = new UserController();
+            $authController->Update_Account_ByAdmin();
+        },
+        '/Backend/admin/personalTrainer/request' => function () {//---------------Đã chỉnh sửa
+            $authController = new controll_PT();
+            $authController->get_request();
+        },
+        '/Backend/admin/personalTrainer/request/accept' => function () {//---------------Đã chỉnh sửa
+            $authController = new controll_PT();
+            $authController->accept_request();
+        },
+        '/Backend/admin/personalTrainer/request/reject' => function () {//---------------Đã chỉnh sửa
+            $authController = new controll_PT();
+            $authController->reject_request();
+        },
+        
+
     ],
     // Product Routes
     'product' => [
@@ -110,26 +164,13 @@ $routes = [
             $productController = new controll_product();
             $productController->getAll_products();
         },
-
         '/Backend/products/info' => function () { //---------------Đã chỉnh sửa
             $productController = new controll_product();
-            $productController->getOne_products();
+            $productController->getOne_product();
         },
-        '/Backend/products/product/update' => function () {  //---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->update_Product();
-        },
-        '/Backend/products/product/add' => function () {//---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->add_Product();
-        },
-        '/Backend/products/categories/all' => function () {//---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->get_All_Category();
-        },
-        '/Backend/products/product/delete' => function () {//---------------Đã chỉnh sửa
-            $productController = new controll_product();
-            $productController->delete_products();
+        '/Backend/categories' => function () { //---------------Đã chỉnh sửa
+            $productController = new controll_category_product();
+            $productController->getAll();
         },
         //Thêm sản phẩm liên quan
     ],
@@ -148,12 +189,12 @@ $routes = [
             $ptController = new controll_PT();
             $ptController->Register_PT();
         },
-        '/Backend/personalTrainer/practiceSchedule' => function () {
+        '/Backend/personalTrainer/practiceSchedule' => function () {//---------------Đã chỉnh sửa
             // Khách hàng lấy lịch tập
             $ptController = new controll_invoice_pt();
             $ptController->get_practiceSchedule();
         },
-        '/Backend/personalTrainer/payment' => function () {
+        '/Backend/personalTrainer/payment' => function () {//---------------Đã chỉnh sửa
             $ptController = new controll_invoice_pt();
             $ptController->payment_check();
         },
@@ -210,14 +251,6 @@ $routes = [
             $orderController = new controll_Order();
             $orderController->getPurchaseOrder();
         },
-        '/Backend/order/purchase/get_unconfirm' => function () {//---------------Đã chỉnh sửa
-            $orderController = new controll_Order();
-            $orderController->PurchaseOrder_unconfimred();
-        },
-        '/Backend/order/purchase/confirm' => function () {//---------------Đã chỉnh sửa
-            $orderController = new controll_Order();
-            $orderController->Control_PurchaseOrder_confirm();
-        },
         '/Backend/order/payment' => function () {//---------------Đã chỉnh sửa
             $orderController = new controll_Order();
             $orderController->payment_check();
@@ -226,7 +259,7 @@ $routes = [
 
     // Home Content Routes
     'home' => [
-        '/Backend/HomeContent' => function () { //---------------Đã chỉnh sửa
+        '/Backend/home' => function () { 
             $homeContentController = new Controll_HomeContent();
             $homeContentController->HomeContent();
         },

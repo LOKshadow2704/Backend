@@ -18,24 +18,12 @@ class AuthController extends Control
         $result = $this->modelAuth->login($username, $password);
         if ($result) {
             //Kiểm tra phiên làm việc
-            $existingSession = $this->modelAuth->checkPHPSESSID($username);
-            if (!empty($existingSession) && !is_null($existingSession[0]['phpsessid'])) {
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_write_close();
-                }
-                session_id($existingSession[0]['phpsessid']);
-            } else {
-                // Trường hợp không có PHPSESSID trong cơ sở dữ liệu
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_destroy();
-                }
-                session_start();
-                session_regenerate_id(true);
-                $this->modelAuth->savePHPSESSID($username, session_id());
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
             }
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
+            session_start();
+            session_regenerate_id(true);
+            $this->modelAuth->savePHPSESSID($username, session_id());
             if ($_SERVER['HTTP_USER_AGENT'] === 'MOBILE_GOATFITNESS') {
                 $csrf = $this->jwt->generateCSRFToken();
                 if (!isset($_SESSION["csrf_token"])) {
@@ -91,13 +79,13 @@ class AuthController extends Control
                 return;
             }
             $csrf = $this->jwt->generateCSRFToken();
-                if (!isset($_SESSION["csrf_token"])) {
-                    $_SESSION["csrf_token"] = [];
-                }
-                if (!isset($_SESSION["csrf_token"][$data['username']]) || !is_array($_SESSION["csrf_token"][$data['username']])) {
-                    $_SESSION["csrf_token"][$data['username']] = [];
-                }
-                $_SESSION["csrf_token"][$data['username']][$_SERVER['HTTP_USER_AGENT']] = $csrf;
+            if (!isset($_SESSION["csrf_token"])) {
+                $_SESSION["csrf_token"] = [];
+            }
+            if (!isset($_SESSION["csrf_token"][$data['username']]) || !is_array($_SESSION["csrf_token"][$data['username']])) {
+                $_SESSION["csrf_token"][$data['username']] = [];
+            }
+            $_SESSION["csrf_token"][$data['username']][$_SERVER['HTTP_USER_AGENT']] = $csrf;
             $payload = $this->createPayload($data['username']);
             $token = $this->jwt->generateJWT($payload, $_SERVER['HTTP_USER_AGENT']);
             $refreshToken = $this->jwt->createRefreshToken($data['username'], 'MOBILE');

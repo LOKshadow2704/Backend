@@ -58,13 +58,9 @@ class JWT
                     //Tạo token mới
                 }
             }
-
             return true;
-        } else {
-            //Xác thực không có AT
-            $verifyRT = $this->verifyRefreshToken($refresh_token);
-
         }
+        return false;
 
     }
 
@@ -86,26 +82,6 @@ class JWT
         return $refreshToken;
     }
 
-    public function verifyRefreshToken($refreshToken, $username, $agent): bool
-    {
-        $username = $_SESSION['username'];
-        $storedToken = $this->model_rt->getToken($username, $agent);
-        return hash_equals($storedToken, hash('sha256', $refreshToken));
-    }
-
-    public function refreshJWT($refreshToken, $username, $agent): ?string
-    {
-        if ($this->verifyRefreshToken($refreshToken, $username, $agent)) {
-            $newPayload = [
-                'username' => $username,
-                'role' => 'user', // Thêm các claim khác nếu cần
-                'exp' => time() + 3600, // Access Token hết hạn sau 1 giờ
-            ];
-            return $this->generateJWT($newPayload, $agent);
-        }
-        return null; // Refresh Token không hợp lệ
-    }
-
 
     public function VerifiRefreshToken($refreshToken, $username)
     {
@@ -115,12 +91,16 @@ class JWT
             return false;
     }
 
-    public function getUsername(string $jwt): ?string
+    public function getUsername()
     {
-        list($encodedHeader, $encodedPayload) = explode('.', $jwt);
+        list($encodedHeader, $encodedPayload) = explode('.', $this->jwt);
         $payload = base64_decode($encodedPayload);
         $payloadArray = json_decode($payload, true);
         return $payloadArray['username'] ?? null;
+    }
+
+    public function get_JWT(){
+        return $this->jwt;
     }
 
     public function generateCSRFToken(): string

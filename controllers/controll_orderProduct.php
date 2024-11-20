@@ -40,18 +40,9 @@ class controll_Order extends Control
     public function Order()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $auth = $this->authenticate_user();
             $data = json_decode(file_get_contents('php://input'), true);
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            //Xác thực
-            $Auth = new JWT();
-            $verify = $Auth->verifyJWT($jwt, $agent);
-            if ($verify) {
+            if ($auth) {
                 $amount = 0;
                 foreach ($data["products"] as $index => $item) {
                     $check_quantity = $this->check_conditions($item);
@@ -69,7 +60,7 @@ class controll_Order extends Control
                         }
                     }
                 }
-                $username = $this->jwt->getUserName($jwt);
+                $username = $this->jwt->getUserName($this->jwt->get_JWT());
                 $cusID = $this->modelAuth->getIDKhachhang($username);
                 $data_user = $this->modelAuth->AccountInfo($username);
                 $oder = new model_order("", $cusID, $data["HinhThucThanhToan"], $data_user["DiaChi"], $amount);
@@ -96,7 +87,7 @@ class controll_Order extends Control
                     $payment_data['phone'] = $data_user['SDT'];
                     //Tạo link thanh toán
                     $payment = new Controll_payment();
-                    $ExePayment = $payment->create($payment_data, $agent, "product");
+                    $ExePayment = $payment->create($payment_data, $this->get_agent(), "product");
                     if ($ExePayment) {
                         http_response_code(200);
                         echo json_encode(["success" => $ExePayment['checkoutUrl']]);
@@ -130,16 +121,9 @@ class controll_Order extends Control
     public function getPurchaseOrder()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            $auth = $this->authenticate_user();
+            $jwt = $this->jwt->get_JWT();
+            if ($auth) {
                 $username = $this->jwt->getUserName($jwt);
                 $userId = $this->modelAuth->getIDKhachhang($username);
                 $result_Purchase = $this->model_order->get_All_Purchase($userId);
@@ -179,19 +163,11 @@ class controll_Order extends Control
         }
     }
 
-    public function PurchaseOrder_unconfimred()
+    public function get_order_unconfimred()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == "2") {
+            $auth = $this->authenticate_employee();
+            if ($auth) {
                 $result_Purchase = $this->model_order->get_Purchase_unconfimred();
                 if (empty($result_Purchase)) {
                     http_response_code(200);
@@ -229,23 +205,18 @@ class controll_Order extends Control
         }
     }
 
-    public static function Control_PurchaseOrder_confirm()
+    public function order_confirm()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $auth = $this->authenticate_employee();
             $data = json_decode(file_get_contents('php://input'), true);
-            $Auth = new JWT();
-            $verify = $Auth->JWT_verify($jwt);
-            if ($verify) {
-                $order = new model_order();
-                $result_Purchase = $order->Purchase_confirm($data["IDDonHang"]);
+            if ($auth) {
+                $result_Purchase = $this->model_order->Purchase_confirm($data["IDDonHang"]);
                 if ($result_Purchase) {
                     http_response_code(200);
                     exit();
                 } else {
                     http_response_code(403);
-                    var_dump($result_Purchase);
                     echo json_encode(['error' => 'Cập nhật không thành công']);
                     return;
                 }
@@ -264,17 +235,9 @@ class controll_Order extends Control
     public function payment_check()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
+            $auth = $this->authenticate_user();
             $data = json_decode(file_get_contents('php://input'), true);
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            if ($auth) {
                 $payment = new Controll_payment();
                 $payment_data = $payment->getPaymentLinkInformation($data['orderCode']);
                 $result = $payment->verifyPaymentWebhookData($payment_data);
@@ -306,21 +269,13 @@ class controll_Order extends Control
 
     public function get_statistical()
     {
-        $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-        $jwt = trim(str_replace('Bearer ', '', $jwt));
-        $agent = "";
-        if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-            $agent = "MOBILE_GOATFITNESS";
-        } else {
-            $agent = "WEB";
-        }
-        $verify = $this->jwt->verifyJWT($jwt, $agent);
-        $role = $this->jwt->getRole();
-        if ($verify && $role == 2) {
+        $auth = $this->authenticate_employee();
+        if ($auth) {
             $result_data = $this->model_order->purchase();
             return $result_data;
         } else {
             return false;
         }
     }
+
 }

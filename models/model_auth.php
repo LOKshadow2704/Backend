@@ -30,6 +30,7 @@ class model_auth
             $stmt = $connect->prepare($query);
             $stmt->execute([$phonenumber]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->db->disconnect_db($connect);
             if ($user) {
                 return $user["TenDangNhap"];
             } else {
@@ -51,6 +52,7 @@ class model_auth
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->db->disconnect_db($connect);
             if ($user) {
                 return $user;
             }
@@ -68,6 +70,7 @@ class model_auth
             $stmt = $connect->prepare($query);
             $stmt->execute($params);
             $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->db->disconnect_db($connect);
             if ($user) {
                 $this->db->disconnect_db($connect);
                 return $user;
@@ -112,6 +115,7 @@ class model_auth
 
             $stmt = $connect->prepare($query);
             $result = $stmt->execute($query_value);
+            $this->db->disconnect_db($connect);
             return $result;
         }
 
@@ -312,5 +316,39 @@ class model_auth
         }
     }
 
+    public function update_pt($id, $username)
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "UPDATE khachhang SET IDHLV = ? WHERE TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$id, $username]);
+            $rowsAffected = $stmt->rowCount();
+            $this->db->disconnect_db($connect);
+            if ($rowsAffected === 0) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public function check_pt($username) {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT IDHLV FROM khachhang WHERE TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC); 
+            $this->db->disconnect_db($connect);
+            if ($result && $result['IDHLV'] !== null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+    
 
 }

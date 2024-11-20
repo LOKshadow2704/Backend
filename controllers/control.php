@@ -23,7 +23,7 @@ class Control
         }
         $_SESSION["csrf_token"][$username]["WEB"] = $csrf;
         $payload = $this->createPayload($username);
-        $token = $this->jwt->generateJWT($payload , "WEB");
+        $token = $this->jwt->generateJWT($payload, "WEB");
         setcookie("jwt", $token, time() + 36000, "/");
         setcookie("refresh_token", $newRefreshToken, time() + 86400 * 30, "/");
         setcookie("PHPSESSID", session_id(), time() + 36000, "/");
@@ -80,12 +80,6 @@ class Control
         return null;
     }
 
-    protected function isCSRFTokenValid($username, $csrfToken)
-    {
-        // Kiểm tra xem CSRF token có hợp lệ không
-        return isset($_SESSION["csrf_token"][$username]) && $_SESSION["csrf_token"][$username] === $csrfToken;
-    }
-
     protected function setSessionID($username)
     {
         $Session = $this->modelAuth->checkPHPSESSID($username);
@@ -95,6 +89,42 @@ class Control
             }
             session_id($Session[0]['phpsessid']);
         }
+    }
+
+    public function authenticate_employee($requiredRole = 2)
+    {
+        $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION'] ?? ''));
+        $agent = $this->get_agent();
+        if ($this->jwt->verifyJWT($jwt, $agent) && $this->jwt->getRole() == $requiredRole) {
+            return true;
+        }
+        return false;
+    }
+
+    public function authenticate_admin($requiredRole = 1)
+    {
+        $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION'] ?? ''));
+        $agent = $this->get_agent();
+        if ($this->jwt->verifyJWT($jwt, $agent) && $this->jwt->getRole() == $requiredRole) {
+            return true;
+        }
+        return false;
+    }
+
+    public function authenticate_user()
+    {
+        $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION'] ?? ''));
+        $agent = $this->get_agent();
+        if ($this->jwt->verifyJWT($jwt, $agent)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    public function get_agent(){
+        $agent = $_SERVER['HTTP_USER_AGENT'] === "MOBILE_GOATFITNESS" ? "MOBILE_GOATFITNESS" : "WEB";
+        return $agent;
     }
 
 }

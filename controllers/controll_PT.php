@@ -58,19 +58,10 @@ class controll_PT extends Control
     public function Register_PT()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $auth = $this->authenticate_user();
             $data = json_decode(file_get_contents('php://input'), true);
-            $agent = "";
-
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            $jwt = $this->jwt->get_JWT();
+            if ($auth) {
                 $username = $this->jwt->getUserName($jwt);
                 $customer = $this->modelAuth->KhachHang($username);
                 $user = $this->modelAuth->AccountInfo($this->jwt->getUsername($jwt));
@@ -141,7 +132,7 @@ class controll_PT extends Control
                                 $payment_data['amount'] = $amount;
                                 $payment_data['name'] = $user['HoTen'];
                                 $payment_data['phone'] = $user['SDT'];
-                                $ExePayment = $payment->create($payment_data, $agent, "personal_trainer");
+                                $ExePayment = $payment->create($payment_data, $this->get_agent(), "personal_trainer");
                                 if ($ExePayment) {
                                     http_response_code(200);
                                     echo json_encode(['success' => $ExePayment["checkoutUrl"]]);
@@ -154,12 +145,115 @@ class controll_PT extends Control
                     } else {
                         http_response_code(403);
                         echo json_encode(['error' => 'HLV này đã có lịch tại thời điểm bạn đăng ký']);
-                        exit();
+                        return;
+
                     }
                 } else {
                     http_response_code(403);
                     echo json_encode(['error' => 'Đây là tài khoản của bạn!']);
+                    return;
                 }
+            } else {
+                http_response_code(403);
+                echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
+
+    public function applyPT()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $auth = $this->authenticate_user();
+            $data = json_decode(file_get_contents('php://input'), true);
+            $username = $this->jwt->getUsername();
+            if ($auth && $this->jwt->getRole() == 3) {
+                $check_pt_user = $this->modelAuth->check_pt($username);
+                if ($check_pt_user) {
+                    $this->sendResponse(403, ['error' => 'Bạn đã là HVL']);
+                    return;
+                }
+                $id_pt = $this->pt->user_apply($data["DichVu"], $data["GiaThue"], $data["ChungChi"]);
+                $result = $this->modelAuth->update_pt($id_pt, $username);
+                if ($result) {
+                    $this->sendResponse(200, ['success' => 'Đăng ký thành công']);
+                    return;
+                }
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
+
+    public function get_request()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $auth = $this->authenticate_user();
+            if ($auth) {
+                $result = $this->pt->request_pt();
+                if (!$result) {
+                    $this->sendResponse(500, ['error' => 'Không có dữ liệu']);
+                    return;
+                }
+                $this->sendResponse(200, $result);
+                return;
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
+    }
+
+    public function accept_request()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            $auth = $this->authenticate_admin();
+            $id = $_GET['id'] ?? null;
+            if ($auth) {
+                $result = $this->pt->accept_pt($id);
+                if ($result) {
+                    $this->sendResponse(200, ['success' => 'Xác thực PT mới thành công']);
+                    return;
+                } else {
+                    $this->sendResponse(500, ['error' => 'Lỗi hệ thống']);
+                    return;
+                }
+            } else {
+
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
+    }
+
+    public function reject_request()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            $auth = $this->authenticate_admin();
+            $id = $_GET['id'] ?? null;
+            if ($auth) {
+                $result = $this->pt->reject_pt($id);
+                if ($result) {
+                    $this->sendResponse(200, ['success' => 'Đã từ chối PT']);
+                    return;
+                } else {
+                    $this->sendResponse(500, ['error' => 'Lỗi hệ thống']);
+                    return;
+                }
+            } else {
+
             }
         } else {
             http_response_code(404);

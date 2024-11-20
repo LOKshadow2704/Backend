@@ -7,7 +7,7 @@ class controll_product extends Control
     protected $model_products;
     public function __construct()
     {
-        parent::__construct( $_SERVER['HTTP_AUTHORIZATION'] ?? null);
+        parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
         $this->model_products = new model_product();
     }
     public function getAll_products()
@@ -30,40 +30,7 @@ class controll_product extends Control
         }
     }
 
-    public function getAll_products_byManeger()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === "GET") {
-            $result = $this->model_products->get_All_Products_byManege();
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && ($role == "1" || $role =="2") ) {
-                if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
-                } else {
-                    http_response_code(404);
-                    echo json_encode(['error' => 'Không có sản phẩm']);
-                }
-            } else {
-                http_response_code(401);
-                echo json_encode(['error' => 'Không có quyền truy cập']);
-            }
-
-        } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-        }
-    }
-
-    public  function getOne_products()
+    public function getOne_product()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $productID = $_GET['IDSanPham'] ?? null;
@@ -84,7 +51,7 @@ class controll_product extends Control
         }
     }
 
-    public function update_Product()
+    public function employee_update()
     {
         if ($_SERVER['REQUEST_METHOD'] === "PUT") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
@@ -95,7 +62,7 @@ class controll_product extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             $role = $this->jwt->getRole();
             if ($verify && ($role == "1" || $role == "2")) {
                 if (isset($data["data"]) && !empty($data["data"])) {
@@ -125,26 +92,7 @@ class controll_product extends Control
             return;
         }
     }
-
-    public static function get_All_Category()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === "GET") {
-            $products = new model_product();
-            $result = $products->get_All_Category();
-            if ($result) {
-                http_response_code(200);
-                echo json_encode($result);
-            } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Không lấy được dữ liệu']);
-            }
-        } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-        }
-    }
-
-    public function delete_products()
+    public function employee_delete()
     {
         if ($_SERVER['REQUEST_METHOD'] === "DELETE") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
@@ -155,29 +103,33 @@ class controll_product extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             $role = $this->jwt->getRole();
             if ($verify && ($role == "1" || $role == "2")) {
                 $result = $this->model_products->delete_Product($data["IDSanPham"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Xóa thành công']);
+                    return;
 
                 } else {
                     http_response_code(404);
                     echo json_encode(['error' => 'Xóa không thành công']);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
-    public  function add_Product()
+    public function employee_add()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $jwt = trim(str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']));
@@ -188,25 +140,29 @@ class controll_product extends Control
             } else {
                 $agent = "WEB";
             }
-            $verify = $this->jwt->verifyJWT($jwt , $agent);
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
             $role = $this->jwt->getRole();
             if ($verify && ($role == "1" || $role == "2")) {
                 $result = $this->model_products->add_Product($data["data"], $data["SoLuong"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Thêm thành công']);
+                    return;
 
                 } else {
                     http_response_code(404);
                     echo json_encode(['error' => 'Thêm không thành công']);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
