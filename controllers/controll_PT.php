@@ -60,11 +60,10 @@ class controll_PT extends Control
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $auth = $this->authenticate_user();
             $data = json_decode(file_get_contents('php://input'), true);
-            $jwt = $this->jwt->get_JWT();
             if ($auth) {
-                $username = $this->jwt->getUserName($jwt);
+                $username = $this->jwt->getUserName();
                 $customer = $this->modelAuth->KhachHang($username);
-                $user = $this->modelAuth->AccountInfo($this->jwt->getUsername($jwt));
+                $user = $this->modelAuth->AccountInfo($this->jwt->getUsername());
 
                 // Kiểm tra nếu IDHLV không trùng với ID khách hàng
                 if ($customer && $customer["IDHLV"] != $data["IDHLV"]) {
@@ -196,7 +195,7 @@ class controll_PT extends Control
     public function get_request()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $auth = $this->authenticate_user();
+            $auth = $this->authenticate_admin();
             if ($auth) {
                 $result = $this->pt->request_pt();
                 if (!$result) {

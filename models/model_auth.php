@@ -250,11 +250,28 @@ class model_auth
         }
     }
 
-    public function All_Account()
+    public function dashboard_userdata()
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT a.TenDangNhap , r.IDVaiTro , r.TenVaiTro FROM TaiKhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro";
+            $query = "SELECT 
+                            CASE 
+                                WHEN a.IDVaiTro = 3 AND c.IDHLV IS NOT NULL THEN 'HLV'
+                                WHEN a.IDVaiTro = 3 AND c.IDHLV IS NULL THEN 'KhachHang'
+                                WHEN a.IDVaiTro = 2 THEN 'Employee'
+                                ELSE 'Khac'
+                            END AS VaiTro,
+                            COUNT(*) AS SoLuong
+                        FROM 
+                            taikhoan a
+                        LEFT JOIN 
+                            role r ON a.IDVaiTro = r.IDVaiTro
+                        LEFT JOIN 
+                            khachhang c ON a.TenDangNhap = c.TenDangNhap
+                        WHERE 
+                            a.IDVaiTro IN (2, 3)
+                        GROUP BY 
+                            VaiTro";
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -262,13 +279,13 @@ class model_auth
         }
     }
 
-    public function Admin_Update_Account($data)
+    public function Admin_Update_Role($id , $username)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "UPDATE TaiKhoan SET IDVaiTro = ? WHERE TenDangNhap =?";
             $stmt = $connect->prepare($query);
-            $result = $stmt->execute([$data["IDVaiTro"], $data["TenDangNhap"]]);
+            $result = $stmt->execute([$id, $username]);
             return $result;
         }
 
@@ -333,13 +350,14 @@ class model_auth
         return false;
     }
 
-    public function check_pt($username) {
+    public function check_pt($username)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT IDHLV FROM khachhang WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC); 
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $this->db->disconnect_db($connect);
             if ($result && $result['IDHLV'] !== null) {
                 return true;
@@ -349,6 +367,27 @@ class model_auth
         }
         return false;
     }
-    
+
+    public function admin_get_account(){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT 
+                            a.TenDangNhap  , a.SDT , r.IDVaiTro , r.TenVaiTro , c.IDHLV
+
+                        FROM 
+                            taikhoan a
+                        LEFT JOIN 
+                            role r ON a.IDVaiTro = r.IDVaiTro
+                        LEFT JOIN 
+                            khachhang c ON a.TenDangNhap = c.TenDangNhap
+                        WHERE 
+                            a.IDVaiTro IN (2, 3)";
+            $stmt = $connect->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
+    }
+
 
 }

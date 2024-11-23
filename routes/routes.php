@@ -8,7 +8,7 @@ require_once(__DIR__ . '/../controllers/controll_gymback.php');
 require_once(__DIR__ . '/../controllers/controll_cart.php');
 require_once(__DIR__ . '/../controllers/controll_orderProduct.php');
 require_once(__DIR__ . '/../controllers/controll_payment.php');
-// require_once(__DIR__ . '/../controllers/controll_homecontent.php');
+require_once(__DIR__ . '/../controllers/statistical.php');
 require_once(__DIR__ . '/../controllers/controll_checkin.php');
 require_once(__DIR__ . '/../controllers/control_user.php');
 require_once(__DIR__ . '/../controllers/controll_invoice_pt.php');
@@ -127,21 +127,17 @@ $routes = [
 
     ],
     'admin' => [
-        '/Backend/admin/dashboard' => function () {
-            $checkinController = new controll_checkin();
-            $checkinController->get_statistical();
+        '/Backend/admin/dashboard' => function () {//---------------Đã chỉnh sửa
+            $dashboard = new Statistical();
+            $dashboard->dashboard_data();
         },
         '/Backend/admin/account/all' => function () {//---------------Đã chỉnh sửa
             $userController = new UserController();
             $userController->get_Account();
         },
-        '/Backend/admin/account/delete' => function () {
-            $authController = new UserController();
-            $authController->Update_Account_ByAdmin();
-        },
         '/Backend/admin/role/update' => function () {//---------------Đã chỉnh sửa
             $authController = new UserController();
-            $authController->Update_Account_ByAdmin();
+            $authController->update_Role();
         },
         '/Backend/admin/personalTrainer/request' => function () {//---------------Đã chỉnh sửa
             $authController = new controll_PT();
@@ -152,6 +148,14 @@ $routes = [
             $authController->accept_request();
         },
         '/Backend/admin/personalTrainer/request/reject' => function () {//---------------Đã chỉnh sửa
+            $authController = new controll_PT();
+            $authController->reject_request();
+        },
+        '/Backend/admin/employee/all' => function () {
+            $authController = new controll_PT();
+            $authController->accept_request();
+        },
+        '/Backend/admin/employee/' => function () {
             $authController = new controll_PT();
             $authController->reject_request();
         },

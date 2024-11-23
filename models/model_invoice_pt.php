@@ -32,7 +32,7 @@ class model_invoice_pt{
     public function add_Invoice(){
         $connect = $this->db->connect_db();
         if($connect){
-            $query = "INSERT INTO hoadonthuept VALUES (NULL, ?, ?, ?, ?, ?,0)";
+            $query = "INSERT INTO hoadonthuept VALUES (NULL, ?, ?, ?, ?, ?)";
             $stmt = $connect->prepare($query);
             $result=$stmt->execute([
                 $this->IDKhachHang ,
@@ -88,6 +88,25 @@ class model_invoice_pt{
             $stmt = $connect->prepare($query);
             $stmt->execute([$starttime , $endtime ,$starttime , $endtime]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->db->disconnect_db($connect);
+            return $result;
+        }
+    }
+
+    public function dashboard_ptdata(){
+        $connect = $this->db->connect_db();
+        if($connect){
+            $query = "SELECT  
+                        DATE(i.NgayDangKy) AS NgayDangKy, SUM(p.GiaThue * TIMESTAMPDIFF(HOUR, i.NgayDangKy, i.NgayHetHan)) AS TongThanhTien
+                        FROM hoadonthuept AS i LEFT JOIN hlv AS p ON i.IDHLV = p.IDHLV
+                        GROUP BY 
+                            DATE(i.NgayDangKy)
+                        ORDER BY 
+                            DATE(i.NgayDangKy)";
+            $stmt = $connect->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->db->disconnect_db($connect);
             return $result;
         }
     }

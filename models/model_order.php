@@ -28,7 +28,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "INSERT into DonHang values (?,?,?,?,?,?,?,?,'Chưa xác nhận')";
+            $query = "INSERT into donhang values (?,?,?,?,?,?,?,?,'Chưa xác nhận')";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute(
                 [
@@ -54,7 +54,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT * FROM DonHang WHERE IDKhachHang = ?";
+            $query = "SELECT * FROM donhang WHERE IDKhachHang = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$IDKhachHang]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -72,7 +72,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE DonHang SET TrangThaiThanhToan = 'Đã Thanh Toán' WHERE IDDonHang = ?";
+            $query = "UPDATE donhang SET TrangThaiThanhToan = 'Đã Thanh Toán' WHERE IDDonHang = ?";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$IDDonHang]);
             if ($result) {
@@ -89,7 +89,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT * FROM DonHang WHERE TrangThai LIKE 'Chưa xác nhận'";
+            $query = "SELECT * FROM donhang WHERE TrangThai LIKE 'Chưa xác nhận'";
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -107,7 +107,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE DonHang SET TrangThai = 'Đã xác nhận' WHERE IDDonHang = ?";
+            $query = "UPDATE donhang SET TrangThai = 'Đã xác nhận' WHERE IDDonHang = ?";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$IDDonHang]);
             if ($result) {
@@ -142,6 +142,25 @@ class model_order
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT * FROM DonHang";
+            $stmt = $connect->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($result) {
+                $this->db->disconnect_db($connect);
+                return $result;
+            } else {
+                $this->db->disconnect_db($connect);
+                return false;
+            }
+        }
+    }
+
+    public function dashboard_orderdata()
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT NgayDat, TrangThai, COUNT(*) AS SoLuongDonHang, SUM(ThanhTien) AS DoanhThu
+                      FROM donhang GROUP BY NgayDat, TrangThai";
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -71,7 +71,6 @@ class controll_category_product extends Control
     public function employee_delete()
     {
         if ($_SERVER['REQUEST_METHOD'] === "DELETE") {
-            $data = json_decode(file_get_contents('php://input'), true);
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
             $agent = "";
@@ -83,7 +82,7 @@ class controll_category_product extends Control
             $verify = $this->jwt->verifyJWT($jwt, $agent);
             $role = $this->jwt->getRole();
             if ($verify && $role == 2) {
-                $result = $this->model_category->delete($data["IDLoaiSanPham"]);
+                $result = $this->model_category->delete($_GET["id"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode(['success' => 'Xóa loại sản phẩm thành công']);

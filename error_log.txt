@@ -1,0 +1,3 @@
+[23-Nov-2024 07:48:11 Europe/Berlin] PHP Warning:  Undefined array key 1 in C:\xampp\htdocs\Backend\middlewares\JWT_Middleware.php on line 69
+[23-Nov-2024 07:48:11 Europe/Berlin] PHP Warning:  Undefined array key 1 in C:\xampp\htdocs\Backend\middlewares\JWT_Middleware.php on line 69
+[23-Nov-2024 07:48:11 Europe/Berlin] PHP Warning:  Undefined array key 1 in C:\xampp\htdocs\Backend\middlewares\JWT_Middleware.php on line 69

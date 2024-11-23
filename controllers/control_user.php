@@ -26,14 +26,17 @@ class UserController extends Control
                 if ($dataUser) {
                     http_response_code(200);
                     echo json_encode($dataUser);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
@@ -265,20 +268,11 @@ class UserController extends Control
     public function get_Account()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == "1") {
+
+            $auth = $this->authenticate_admin();
+            if ($auth) {
                 $user = new model_auth();
-                $result = $user->All_Account();
+                $result = $user->admin_get_account();
                 if ($result) {
                     http_response_code(200);
                     echo json_encode($result);
@@ -295,34 +289,32 @@ class UserController extends Control
         }
     }
 
-    public function Update_Account_ByAdmin()
+    public function update_Role()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
             $data = json_decode(file_get_contents("php://input"), true);
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == "1") {
+            $auth = $this->authenticate_admin();
+            if ($auth) {
                 $user = new model_auth();
-                $result = $user->Admin_Update_Account($data);
+                if ($data["IDVaiTro"] == 1) {
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Bạn không có quyền này!']);
+                    return;
+                }
+                $result = $user->Admin_Update_Role($data["IDVaiTro"], $data["TenDangNhap"]);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode($result);
+                    return;
                 } else {
-                    http_response_code(403);
+                    http_response_code(500);
                     echo json_encode(['error' => 'Lỗi hệ thống']);
+                    return;
                 }
             } else {
                 http_response_code(403);
                 echo json_encode(['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
             http_response_code(404);
