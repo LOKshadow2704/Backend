@@ -86,7 +86,7 @@ class model_product
 
             // Cập nhật bảng Kho nếu có số lượng
             if (isset($data['SoLuong'])) {
-                $stmt2 = $connect->prepare("UPDATE Kho SET SoLuong = ? WHERE IDSanPham = ?");
+                $stmt2 = $connect->prepare("UPDATE kho SET SoLuong = ? WHERE IDSanPham = ?");
                 $stmt2->execute([$data['SoLuong'], $IDSanPham]);
                 unset($data['SoLuong']);
             }
@@ -140,7 +140,7 @@ class model_product
             $lastInsertedId = $connect->lastInsertId();
 
             // Thêm vào bảng Kho
-            $query_quantity = "INSERT INTO Kho (IDSanPham, SoLuong) VALUES (?, ?)";
+            $query_quantity = "INSERT INTO kho (IDSanPham, SoLuong) VALUES (?, ?)";
             $stmt_quantity = $connect->prepare($query_quantity);
             $stmt_quantity->execute([$lastInsertedId, $quantity]);
 

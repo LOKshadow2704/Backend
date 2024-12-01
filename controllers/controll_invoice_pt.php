@@ -14,19 +14,10 @@ class controll_invoice_pt extends Control
     public function get_practiceSchedule()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
-                $user = new model_auth();
-                $username = $this->jwt->getUserName($jwt);
-                $cusID = $user->getIDKhachhang($username);
+            $auth = $this->authenticate_user();
+            if ($auth) {
+                $username = $this->jwt->getUserName();
+                $cusID = $this->modelAuth->getIDKhachhang($username);
                 $result = $this->model_invoice->get_invoiceByCustomer($cusID);  // Lấy thông tin PT theo tên đăng nhập
                 if ($result) {
                     http_response_code(200);
@@ -79,6 +70,31 @@ class controll_invoice_pt extends Control
             http_response_code(404);
             echo json_encode(['error' => 'Đường dẫn không tồn tại']);
             return;
+        }
+    }
+
+    public function pt_schedule()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === "GET") {
+            $auth = $this->authenticate_user();
+            if ($auth) {
+                $username = $this->jwt->getUserName();
+                $id = $this->modelAuth->get_IDHLV($username);
+                $result = $this->model_invoice->get_invoiceByPT($id);  // Lấy thông tin PT theo tên đăng nhập
+                if ($result) {
+                    http_response_code(200);
+                    echo json_encode($result);
+                } else {
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Không có lịch dạy']);
+                }
+            } else {
+                http_response_code(403);
+                echo json_encode(['error' => 'Lỗi xác thực']);
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
 

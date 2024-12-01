@@ -260,6 +260,29 @@ class controll_PT extends Control
         }
     }
 
+    public function user_request()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $auth = $this->authenticate_user();
+            if ($auth) {
+                $username = $this->jwt->getUsername();
+                $result = $this->pt->user_request_pt($username);
+                if (!$result) {
+                    $this->sendResponse(500, ['error' => 'Không có dữ liệu']);
+                    return;
+                }
+                $this->sendResponse(200, $result);
+                return;
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+        }
+    }
+
 
 
 }

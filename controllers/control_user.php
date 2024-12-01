@@ -10,54 +10,32 @@ class UserController extends Control
     public function getAccountInfo()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
-                $username = $this->jwt->getUserName($jwt);
+            $auth = $this->authenticate_user();
+            if ($auth) {
+                $username = $this->jwt->getUserName();
                 $dataUser = $this->modelAuth->AccountInfo($username);
                 if ($dataUser) {
-                    http_response_code(200);
-                    echo json_encode($dataUser);
-                    return;
+                    $this->sendResponse(200, $dataUser);
+                } else {
+                    $this->sendResponse(404, ['error' => 'Không tìm thấy thông tin người dùng']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
-                return;
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-            return;
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
     public function Update_User()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            $auth = $this->authenticate_user();
+            if ($auth) {
                 $data = json_decode(file_get_contents("php://input"), true);
-                $username = $this->jwt->getUserName($jwt);
-                //Kiểm tra null
+                $username = $this->jwt->getUserName();
                 $update_data = array();
+
                 if (isset($data['HoTen']) && !empty($data['HoTen'])) {
                     $update_data['HoTen'] = $data['HoTen'];
                 }
@@ -73,25 +51,18 @@ class UserController extends Control
                 if (isset($data['SDT']) && !empty($data['SDT'])) {
                     $update_data['SDT'] = $data['SDT'];
                 }
+
                 $result = $this->modelAuth->UpdateUserInfo($update_data, $username);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode(['success' => 'Update thành công']);
-                    return;
+                    $this->sendResponse(200, ['success' => 'Cập nhật thành công']);
                 } else {
-                    http_response_code(500);
-                    echo json_encode(['error' => 'Update thất bại']);
-                    return;
+                    $this->sendResponse(500, ['error' => 'Cập nhật thất bại']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
-                return;
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-            return;
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -99,88 +70,60 @@ class UserController extends Control
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-                if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                    http_response_code(401);
-                    echo json_encode(['error' => 'Không tìm thấy token xác thực']);
-                    return;
-                }
-                $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-                $jwt = trim(str_replace('Bearer ', '', $jwt));
-                $agent = ($_SERVER['HTTP_USER_AGENT'] === "MOBILE_GOATFITNESS") ? "MOBILE_GOATFITNESS" : "WEB";
-                $verify = $this->jwt->verifyJWT($jwt, $agent);
-                if ($verify) {
+                $auth = $this->authenticate_user();
+                if ($auth) {
                     $data = json_decode(file_get_contents("php://input"), true);
                     if (isset($data['currentPW']) && isset($data['newPW']) && !empty($data['currentPW']) && !empty($data['newPW'])) {
-                        $username = $this->jwt->getUserName($jwt);
+                        $username = $this->jwt->getUserName();
                         $result = $this->modelAuth->UpdatePassword($data['currentPW'], $data['newPW'], $username);
                         switch ($result) {
                             case "Mật khẩu hiện tại không khớp":
-                                http_response_code(400);
-                                echo json_encode(["message" => "Mật khẩu hiện tại không khớp"]);
+                                $this->sendResponse(400, ["message" => "Mật khẩu hiện tại không khớp"]);
                                 break;
                             case "Đổi mật khẩu không thành công":
-                                http_response_code(500);
-                                echo json_encode(["message" => "Đổi mật khẩu không thành công"]);
+                                $this->sendResponse(500, ["message" => "Đổi mật khẩu không thành công"]);
                                 break;
                             case "Đổi mật khẩu thành công":
-                                http_response_code(200);
-                                echo json_encode(["message" => "Đổi mật khẩu thành công"]);
+                                $this->sendResponse(200, ["message" => "Đổi mật khẩu thành công"]);
                                 break;
                             default:
-                                http_response_code(500);
-                                echo json_encode(["error" => "Lỗi không xác định"]);
+                                $this->sendResponse(500, ["error" => "Lỗi không xác định"]);
                                 break;
                         }
                     } else {
-                        http_response_code(400);
-                        echo json_encode(["message" => "Thiếu dữ liệu: currentPW hoặc newPW"]);
+                        $this->sendResponse(400, ["message" => "Thiếu dữ liệu: currentPW hoặc newPW"]);
                     }
                 } else {
-
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Lỗi xác thực JWT']);
+                    $this->sendResponse(403, ['error' => 'Lỗi xác thực JWT']);
                 }
             } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+                $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             }
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()]);
+            $this->sendResponse(500, ['error' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()]);
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Lỗi hệ thống: ' . $e->getMessage()]);
+            $this->sendResponse(500, ['error' => 'Lỗi hệ thống: ' . $e->getMessage()]);
         }
     }
-
-
 
     public function Update_Avt()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = ($_SERVER['HTTP_USER_AGENT'] === "MOBILE_GOATFITNESS") ? "MOBILE_GOATFITNESS" : "WEB";
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            $auth = $this->authenticate_user();
+            if ($auth) {
                 $data = json_decode(file_get_contents("php://input"), true);
-                $username = $this->jwt->getUserName($jwt);
+                $username = $this->jwt->getUserName();
                 $result = $this->modelAuth->updateUserAvt($data["newavt"], $username);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode(['success' => 'Cập nhật thành công']);
+                    $this->sendResponse(200, ['success' => 'Cập nhật thành công']);
                 } else {
-                    http_response_code(500);
-                    echo json_encode(['error' => 'Cập nhật không thành công']);
+                    $this->sendResponse(500, ['error' => 'Cập nhật không thành công']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -191,16 +134,13 @@ class UserController extends Control
                 $data = json_decode(file_get_contents("php://input"), true);
                 $result = $this->modelAuth->Signup($data);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode(['success' => 'Đăng ký thành công']);
+                    $this->sendResponse(200, ['success' => 'Đăng ký thành công']);
                 }
             } catch (Exception $e) {
-                http_response_code(400);
-                echo json_encode(['error' => $e->getMessage()]);
+                $this->sendResponse(400, ['error' => $e->getMessage()]);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -210,17 +150,12 @@ class UserController extends Control
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $jwt = $_SERVER['HTTP_AUTHORIZATION'];
             $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
+            // Xác thực
+            $agent = ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") ? "MOBILE_GOATFITNESS" : "WEB";
             $verify = $this->jwt->verifyJWT($jwt, $agent);
+
             if (!$verify) {
-                http_response_code(401);
-                echo json_encode(['error' => 'Xác thực không thành công']);
+                $this->sendResponse(401, ['error' => 'Xác thực không thành công']);
                 return;
             }
             $role = $this->jwt->getRole();
@@ -228,64 +163,50 @@ class UserController extends Control
                 $user = new model_auth();
                 $result = $user->user_training();
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode(['success' => $result]);
-                    return;
+                    $this->sendResponse(200, ['success' => $result]);
                 } else {
-                    http_response_code(200);
-                    echo json_encode(['warning' => 'Chưa có người tập hôm nay']);
-                    return;
+                    $this->sendResponse(200, ['warning' => 'Chưa có người tập hôm nay']);
                 }
             } else {
-                http_response_code(401);
-                echo json_encode(['error' => 'Không có quyền truy cập']);
+                $this->sendResponse(401, ['error' => 'Không có quyền truy cập']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-            return;
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
-    public static function get_Employee_Working()
+    public function get_Employee_Working()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $user = new model_auth();
             $result = $user->Employee_Working();
             if ($result) {
-                http_response_code(200);
-                echo json_encode(['success' => $result]);
+                $this->sendResponse(200, ['success' => $result]);
             } else {
-                http_response_code(200);
-                echo json_encode(['warning' => 'Không thực hiện được hành động']);
+                $this->sendResponse(200, ['warning' => 'Không thực hiện được hành động']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
     public function get_Account()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
             $auth = $this->authenticate_admin();
             if ($auth) {
                 $user = new model_auth();
                 $result = $user->admin_get_account();
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
+                    $this->sendResponse(200, $result);
                 } else {
-                    http_response_code(400);
+                    $this->sendResponse(400, ['error' => 'Không có tài khoản']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
         }
     }
 
@@ -297,62 +218,149 @@ class UserController extends Control
             if ($auth) {
                 $user = new model_auth();
                 if ($data["IDVaiTro"] == 1) {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Bạn không có quyền này!']);
+                    $this->sendResponse(403, ['error' => 'Bạn không có quyền này!']);
                     return;
                 }
                 $result = $user->Admin_Update_Role($data["IDVaiTro"], $data["TenDangNhap"]);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
+                    $this->sendResponse(200, ['success' => 'Cập nhật quyền thành công']);
                     return;
                 } else {
-                    http_response_code(500);
-                    echo json_encode(['error' => 'Lỗi hệ thống']);
+                    $this->sendResponse(500, ['error' => 'Lỗi hệ thống']);
                     return;
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
     public function gympack_customer()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            //Xác thực
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == "2") {
+            $auth = $this->authenticate_employee();
+            if ($auth) {
                 $result = $this->modelAuth->get_gympack_customer();
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
+                    $this->sendResponse(200, $result);
+                    return;
                 } else {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Lỗi hệ thống']);
+                    $this->sendResponse(403, ['error' => 'Lỗi hệ thống']);
+                    return;
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
+    public function admin_create_user()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents("php://input"), true);
+            $auth = $this->authenticate_admin();
+            if ($auth) {
+                if ($data["role_id"] == 1) {
+                    $this->sendResponse(400, ['error' => 'Không thể thực hiện yêu cầu']);
+                    return;
+                }
+                // Kiểm tra các trường cần thiết
+                $required_fields = ["username", "password", "fullname", "email", "phone"];
+                foreach ($required_fields as $field) {
+                    if (empty($data[$field])) {
+                        $this->sendResponse(400, ['error' => "Trường {$field} không được để trống."]);
+                        return;
+                    }
+                }
+
+                // Kiểm tra định dạng email
+                if (!filter_var($data["email"], FILTER_VALIDATE_EMAIL)) {
+                    $this->sendResponse(400, ['error' => 'Định dạng email không hợp lệ.']);
+                    return;
+                }
+
+                // Kiểm tra độ dài mật khẩu
+                if (strlen($data["password"]) < 8) {
+                    $this->sendResponse(400, ['error' => 'Mật khẩu phải có ít nhất 8 ký tự.']);
+                    return;
+                }
+
+                try {
+                    // Gọi phương thức admin_add_user và bắt lỗi nếu có
+                    $result = $this->modelAuth->admin_add_user($data);
+                    if ($result) {
+                        $this->sendResponse(200, ['success' => 'Tạo tài khoản thành công']);
+                        return;
+                    } else {
+                        $this->sendResponse(403, ['error' => 'Lỗi hệ thống']);
+                        return;
+                    }
+                } catch (Exception $e) {
+                    // Bắt lỗi và trả về phản hồi
+                    $this->sendResponse(400, ['error' => $e->getMessage()]);
+                    return;
+                }
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
+
+    public function admin_delete_account()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            if ($this->authenticate_admin()) {
+                $user_delete = $_GET["un"];
+                $result = $this->modelAuth->delete_account($user_delete);
+                if ($result) {
+                    $this->sendResponse(200, ['success' => 'Xóa thành công']);
+                    return;
+                } else {
+                    $this->sendResponse(500, ['error' => 'Lỗi hệ thống']);
+                    return;
+                }
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
+
+    public function admin_get_employee()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            if ($this->authenticate_admin()) {
+                $result = $this->modelAuth->manager_employee();
+                if ($result) {
+                    $this->sendResponse(200, $result);
+                    return;
+                } else {
+                    $this->sendResponse(500, ['error' => 'Lỗi hệ thống']);
+                    return;
+                }
+            } else {
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
+            }
+        } else {
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
+        }
+    }
 }
+?>

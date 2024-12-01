@@ -28,6 +28,17 @@ class model_invoice_pt{
             return $result;
         }
     }
+    
+    public function get_invoiceByPT($id){ 
+        $connect = $this->db->connect_db();
+        if($connect){
+            $query = "SELECT * FROM hoadonthuept WHERE IDHLV =?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$id]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
+    }
 
     public function add_Invoice(){
         $connect = $this->db->connect_db();

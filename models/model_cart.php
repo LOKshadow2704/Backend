@@ -110,7 +110,7 @@ require_once("connect_db.php");
         public function getCartItem($IDKhachHang , $IDSanPham){
             $connect = $this->db->connect_db();
             if($connect){
-                $query = "SELECT * FROM GioHang WHERE IDSanPham = ? AND IDKhachHang = ? ";
+                $query = "SELECT * FROM giohang WHERE IDSanPham = ? AND IDKhachHang = ? ";
                 $stmt = $connect ->prepare($query);
                 $result= $stmt->execute([$IDSanPham,$IDKhachHang]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);

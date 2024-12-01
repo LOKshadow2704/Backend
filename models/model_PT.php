@@ -130,4 +130,25 @@ class model_pt
         }
     }
 
+    public function user_request_pt($username){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.ChungChi	
+                      FROM khachhang as k 
+                      inner join hlv as p on p.IDHLV = k.IDHLV 
+                      left join taikhoan as c on c.TenDangNhap = k.TenDangNhap 
+                      WHERE k.IDHLV IS NOT NULL AND p.XacNhan = 0 AND c.TenDangNhap like ?';
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($result) {
+                $this->db->disconnect_db($connect);
+                return $result;
+            } else {
+                $this->db->disconnect_db($connect);
+                return false;
+            }
+        }
+    }
+
 }

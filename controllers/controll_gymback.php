@@ -1,7 +1,6 @@
 <?php
 require_once(__DIR__ . "/../models/model_gympack.php");
 require_once(__DIR__ . "/../models/model_invoice_pack.php");
-require_once(__DIR__ . "/../models/payment.php");
 require_once(__DIR__ . '/control.php');
 class controll_gympack extends Control
 {

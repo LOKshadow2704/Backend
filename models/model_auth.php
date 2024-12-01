@@ -12,7 +12,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM TaiKhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE TenDangNhap LIKE ?";
+            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM taikhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE TenDangNhap LIKE ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +26,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM TaiKhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE a.SDT = ?";
+            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM taikhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE a.SDT = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$phonenumber]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,24 +62,44 @@ class model_auth
     public function login($username, $password)
     {
         $connect = $this->db->connect_db();
+        if (!$connect) {
+            return false; // Lỗi kết nối
+        }
+
         $sha_key = getenv('SHA_KEY');
         $hashed_password = hash_hmac('sha256', $password, $sha_key);
-        if ($connect) {
-            $query = 'select t.HoTen, t.DiaChi , t.Email, t.SDT , r.TenVaiTro , t.avt , t.TrangThai from taikhoan as t inner join role as r on t.IDVaiTro = r.IDVaiTro  where TenDangNhap = :username and  MatKhau = :password';
-            $params = array(':username' => $username, ':password' => $hashed_password);
+        try {
+            // Lấy thông tin tài khoản
+            $query = "SELECT t.HoTen, t.DiaChi, t.Email, t.SDT, r.TenVaiTro, t.avt, t.TrangThai 
+                  FROM taikhoan AS t 
+                  INNER JOIN role AS r ON t.IDVaiTro = r.IDVaiTro  
+                  WHERE t.TenDangNhap = ? AND t.MatKhau = ?";
             $stmt = $connect->prepare($query);
-            $stmt->execute($params);
-            $user = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $this->db->disconnect_db($connect);
+            $stmt->execute([$username, $hashed_password]);
+
+            $user = $stmt->fetch(mode: PDO::FETCH_ASSOC);
             if ($user) {
+                // Nếu đăng nhập thành công, cập nhật trạng thái thành "online"
+                $updateQuery = 'UPDATE taikhoan SET TrangThai = "online" WHERE TenDangNhap = :username';
+                $updateStmt = $connect->prepare($updateQuery);
+                $updateStmt->execute([':username' => $username]);
+
+                // Bao gồm trạng thái cập nhật trong dữ liệu gửi đi
+                $user['TrangThai'] = 'online';
+
                 $this->db->disconnect_db($connect);
                 return $user;
             } else {
                 $this->db->disconnect_db($connect);
                 return false;
             }
+        } catch (PDOException $e) {
+            // Xử lý lỗi
+            $this->db->disconnect_db($connect);
+            return false;
         }
     }
+
 
     public function UpdateUserInfo($update_data, $username)
     {
@@ -91,7 +111,7 @@ class model_auth
                 $sdt = $update_data['SDT'];
 
 
-                $checkQuery = "SELECT COUNT(*) FROM TaiKhoan WHERE SDT = ? AND TenDangNhap != ?";
+                $checkQuery = "SELECT COUNT(*) FROM taikhoan WHERE SDT = ? AND TenDangNhap != ?";
                 $checkStmt = $connect->prepare($checkQuery);
                 $checkStmt->execute([$sdt, $username]);
                 $count = $checkStmt->fetchColumn();
@@ -103,7 +123,7 @@ class model_auth
             }
 
 
-            $query = "UPDATE TaiKhoan SET";
+            $query = "UPDATE taikhoan SET";
             $query_value = array();
             foreach ($update_data as $key => $value) {
                 $query .= " $key = ?,";
@@ -138,7 +158,7 @@ class model_auth
             $hash_newPW = hash_hmac('sha256', $newPW, $sha_key);
 
             // Kiểm tra mật khẩu cũ có đúng không
-            $checkPW_query = "SELECT MatKhau FROM TaiKhoan WHERE TenDangNhap = ?";
+            $checkPW_query = "SELECT MatKhau FROM taikhoan WHERE TenDangNhap = ?";
             $checkPW_stmt = $connect->prepare($checkPW_query);
             $checkPW_stmt->execute([$username]);
             $checkPW = $checkPW_stmt->fetch(PDO::FETCH_ASSOC);
@@ -152,7 +172,7 @@ class model_auth
             }
 
             // Thực hiện thay đổi mật khẩu
-            $updatePW_query = "UPDATE TaiKhoan SET MatKhau = ? WHERE TenDangNhap = ?";
+            $updatePW_query = "UPDATE taikhoan SET MatKhau = ? WHERE TenDangNhap = ?";
             $updatePW_stmt = $connect->prepare($updatePW_query);
             $result = $updatePW_stmt->execute([$hash_newPW, $username]);
 
@@ -174,7 +194,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE TaiKhoan SET avt = ? WHERE TenDangNhap = ?";
+            $query = "UPDATE taikhoan SET avt = ? WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$link, $username]);
             return $result;
@@ -186,7 +206,7 @@ class model_auth
         $connect = $this->db->connect_db();
         $connect->beginTransaction();
         if ($connect) {
-            $checkUser = "SELECT * FROM TaiKhoan WHERE TenDangNhap = ? OR Email = ? OR SDT = ?";
+            $checkUser = "SELECT * FROM taikhoan WHERE TenDangNhap = ? OR Email = ? OR SDT = ?";
             $stmt = $connect->prepare($checkUser);
             $stmt->execute([$data["username"], $data["email"], $data["phone"]]);
             $check = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -197,7 +217,7 @@ class model_auth
             }
             $sha_key = getenv('SHA_KEY');
             $hash_PW = hash_hmac('sha256', $data["password"], $sha_key);
-            $query = "INSERT INTO TaiKhoan VALUE(? ,?, null , 3 , ? ,? ,? ,? , 0 ,'https://i.imgur.com/2MUWzRp.jpg')";
+            $query = "INSERT INTO taikhoan VALUE(? ,?, null , 3 , ? ,? ,? ,? , 0 ,'https://i.imgur.com/2MUWzRp.jpg')";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$data["username"], $hash_PW, $data["fullname"], $data["address"], $data["email"], $data["phone"]]);
             if (!$result) {
@@ -218,7 +238,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE TaiKhoan SET TrangThai =? WHERE TenDangNhap =?";
+            $query = "UPDATE taikhoan SET TrangThai =? WHERE TenDangNhap =?";
             $query = rtrim($query, ',');
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$status, $username]);
@@ -242,7 +262,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM TaiKhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE a.TrangThai LIKE 'Online' AND a.IDVaiTro = 2";
+            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM taikhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE a.TrangThai LIKE 'Online' AND a.IDVaiTro = 2";
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -279,11 +299,11 @@ class model_auth
         }
     }
 
-    public function Admin_Update_Role($id , $username)
+    public function Admin_Update_Role($id, $username)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE TaiKhoan SET IDVaiTro = ? WHERE TenDangNhap =?";
+            $query = "UPDATE taikhoan SET IDVaiTro = ? WHERE TenDangNhap =?";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$id, $username]);
             return $result;
@@ -301,7 +321,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT phpsessid FROM TaiKhoan WHERE TenDangNhap = ?";
+            $query = "SELECT phpsessid FROM taikhoan WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -313,7 +333,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "UPDATE TaiKhoan SET phpsessid = ? WHERE TenDangNhap = ?";
+            $query = "UPDATE taikhoan SET phpsessid = ? WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$phpSessionId, $username]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -368,7 +388,8 @@ class model_auth
         return false;
     }
 
-    public function admin_get_account(){
+    public function admin_get_account()
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT 
@@ -386,6 +407,155 @@ class model_auth
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
+        }
+    }
+
+    public function check_devices($id, $username)
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            try {
+                $query = "SELECT IDDevice FROM khachhang WHERE TenDangNhap = ?";
+                $stmt = $connect->prepare($query);
+                $stmt->execute([$username]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                //IDDevice null
+                if ($result) {
+                    if ($result['IDDevice'] === null) {
+                        $updateQuery = "UPDATE khachhang SET IDDevice = ? WHERE TenDangNhap = ?";
+                        $updateStmt = $connect->prepare($updateQuery);
+                        $updateStmt->execute([$id, $username]);
+                        $this->db->disconnect_db($connect);
+                        return true;
+                    } else {
+                        $this->db->disconnect_db($connect);
+                        return $result['IDDevice'] === $id;
+                    }
+                    //IDDevice not null
+                } else {
+                    $this->db->disconnect_db($connect);
+                    return false;
+                }
+            } catch (Exception $e) {
+
+                $this->db->disconnect_db($connect);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public function admin_add_user($data)
+    {
+        $connect = $this->db->connect_db();
+        $connect->beginTransaction();
+        if ($connect) {
+            $checkUser = "SELECT * FROM taikhoan WHERE TenDangNhap = ? OR Email = ? OR SDT = ?";
+            $stmt = $connect->prepare($checkUser);
+            $stmt->execute([$data["username"], $data["email"], $data["phone"]]);
+            $check = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($check !== false) {
+                if (count($check) != 0) {
+                    throw new Exception('Số điện thoại hoặc email, tên đăng nhập đã có người sử dụng.');
+                }
+            }
+            $sha_key = getenv('SHA_KEY');
+            $hash_PW = hash_hmac('sha256', $data["password"], $sha_key);
+            $query = "INSERT INTO taikhoan VALUE(? ,?, null , ? , ? ,? ,? ,? , 'Offline' ,'https://i.imgur.com/2MUWzRp.jpg')";
+            $stmt = $connect->prepare($query);
+            $result = $stmt->execute([$data["username"], $hash_PW, $data["role_id"], $data["fullname"], $data["address"], $data["email"], $data["phone"]]);
+            if (!$result) {
+                throw new Exception('Lỗi khi thêm tài khoản vài CSDL.');
+            }
+            if ($data["role_id"] == 3) {
+                $query_cus = "INSERT INTO khachhang VALUE( null , ?, null ,null)";
+                $stmt_cus = $connect->prepare($query_cus);
+                $result2 = $stmt_cus->execute([$data["username"]]);
+                if (!$result2) {
+                    throw new Exception('Không thể tạo khách hàng.');
+                }
+            } elseif ($data["role_id"] == 2) {
+                $query_epl = "INSERT INTO nhanvien VALUE( null , ?, ? )";
+                $stmt_epl = $connect->prepare($query_epl);
+                $result3 = $stmt_epl->execute([$data["username"], $data['epl_description']]);
+                if (!$result3) {
+                    throw new Exception('Không thể tạo nhân viên.');
+                }
+            }
+
+            $connect->commit();
+            return $result;
+        }
+    }
+
+    public function delete_account($username)
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "DELETE FROM taikhoan WHERE TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $deletedRows = $stmt->rowCount();
+            $this->db->disconnect_db($connect);
+            if ($deletedRows > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public function manager_employee()
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT 
+                            a.TenDangNhap  , a.SDT  , a.HoTen , a.TrangThai
+                        FROM 
+                            taikhoan a
+                        LEFT JOIN 
+                            role r ON a.IDVaiTro = r.IDVaiTro
+                        LEFT JOIN 
+                            khachhang c ON a.TenDangNhap = c.TenDangNhap
+                        WHERE 
+                            a.IDVaiTro = 2";
+            $stmt = $connect->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        }
+    }
+
+    public function get_IDNhanVien($username){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT 
+                            ID
+                        FROM 
+                            nhanvien 
+                        WHERE 
+                            TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['ID'];
+        }
+    }
+
+    public function get_IDHLV($username){
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT 
+                            IDHLV
+                        FROM 
+                            khachhang 
+                        WHERE 
+                            TenDangNhap = ?";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$username]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['IDHLV'];
         }
     }
 

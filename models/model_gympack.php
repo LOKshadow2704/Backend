@@ -93,7 +93,7 @@ class model_gympack
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = 'UPDATE GoiTap SET Gia = ? WHERE IDGoiTap = ?';
+            $query = 'UPDATE goitap SET Gia = ? WHERE IDGoiTap = ?';
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$price, $id]);
             if ($result) {

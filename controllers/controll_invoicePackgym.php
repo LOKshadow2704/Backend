@@ -9,52 +9,14 @@ class controll_invoicePackgym extends Control
         parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
         $this->invoice = new model_invoice_pack();
     }
-    public function controll_get_All_invoice_packgym()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === "GET") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == 2) {
-                $result = $this->invoice->get_All_invoice_packgym();
-                http_response_code(200);
-                echo json_encode($result);
-                return;
-            } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Không thể lấy dữ liệu']);
-                return;
-            }
-        } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
-            return;
-        }
-    }
+
 
     public function update_invoice_status()
     {
-        // Kiểm tra phương thức yêu cầu là PUT
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
             $data = json_decode(file_get_contents('php://input'), true);
-            $agent = "";
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            $role = $this->jwt->getRole();
-            if ($verify && $role == 2) {
+
+            if ($this->authenticate_employee()) {
                 // Kiểm tra xem dữ liệu có đủ IDHoaDon và TrangThaiThanhToan không
                 if (isset($data['IDHoaDon'])) {
                     $IDHoaDon = $data['IDHoaDon'];

@@ -5,7 +5,9 @@ require_once(__DIR__ . '/control.php');
 
 class AuthController extends Control
 {
-
+    public function __construct(){
+        parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
+    }
     public function login()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

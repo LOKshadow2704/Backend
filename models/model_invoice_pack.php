@@ -76,42 +76,15 @@ class Model_invoice_pack
         }
     }
 
-    // LV thêm hàm này để call api dô coi gói tập của KH
-    public function get_All_invoice_packgym()
-    {
-        $connect = $this->db->connect_db();
-        if ($connect) {
-            $query = 'SELECT  
-                         tk.HoTen, gt.TenGoiTap, 
-                         hd.TrangThaiThanhToan, hd.NgayDangKy, hd.NgayHetHan, hd.IDHoaDon
-                  FROM hoadonthuegoitap hd
-                  JOIN khachhang kh ON hd.IDKhachHang = kh.IDKhachHang
-                  JOIN goitap gt ON hd.IDGoiTap = gt.IDGoiTap
-                  JOIN taikhoan tk ON kh.TenDangNhap = tk.TenDangNhap';
-
-            $stmt = $connect->prepare($query);
-            $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if ($result) {
-                $this->db->disconnect_db($connect);
-                return $result;
-            } else {
-                $this->db->disconnect_db($connect);
-                return false;
-            }
-        }
-    }
-
-    // LV tạo api để xóa mấy cái gói tập KH đăng ký mà hết hạn
     public function delete_invoice_packgym($IDHoaDon)
     {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = 'DELETE FROM hoadonthuegoitap WHERE IDHoaDon = ?';
             $stmt = $connect->prepare($query);
-            $result = $stmt->execute([$IDHoaDon]);
+            $stmt->execute([$IDHoaDon]);
 
-            if ($result) {
+            if ($stmt->rowCount()) {
                 $this->db->disconnect_db($connect);
                 return true;
             } else {

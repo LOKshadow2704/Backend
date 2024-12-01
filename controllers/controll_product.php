@@ -1,6 +1,5 @@
 <?php
 require_once(__DIR__ . "/../models/model_products.php");
-require_once(__DIR__ . "/../models/payment.php");
 require_once(__DIR__ . '/control.php');
 class controll_product extends Control
 {

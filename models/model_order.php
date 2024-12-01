@@ -141,7 +141,7 @@ class model_order
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT * FROM DonHang";
+            $query = "SELECT * FROM donhang";
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
