@@ -43,7 +43,7 @@ class model_invoice_pt{
     public function add_Invoice(){
         $connect = $this->db->connect_db();
         if($connect){
-            $query = "INSERT INTO hoadonthuept VALUES (NULL, ?, ?, ?, ?, ?)";
+            $query = "INSERT INTO hoadonthuept VALUES (NULL, ?, ?, ?, ?, ?, 0)";
             $stmt = $connect->prepare($query);
             $result=$stmt->execute([
                 $this->IDKhachHang ,

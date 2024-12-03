@@ -12,7 +12,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro FROM taikhoan as a JOIN role as r ON a.IDVaiTro = r.IDVaiTro WHERE TenDangNhap LIKE ?";
+            $query = "SELECT a.TenDangNhap , r.IDVaiTro , a.HoTen , a.DiaChi , a.Email , a.SDT , a.TrangThai , a.avt , r.TenVaiTro , c.IDHLV FROM taikhoan as a LEFT JOIN role as r ON a.IDVaiTro = r.IDVaiTro LEFT JOIN khachhang as c ON c.TenDangNhap = a.TenDangNhap WHERE a.TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
