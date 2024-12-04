@@ -19,7 +19,7 @@ require_once(__DIR__ . '/../controllers/schedule_employee.php');
 
 $routes = [
     // Account Routes
-    // Account Routes
+    // Account Routes//
     'account' => [
         '/Backend/signup' => function () {
             $userController = new UserController();
