@@ -13,7 +13,10 @@ class Schedule_employee
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT  `Ngay`, `Ca`, `GhiChu` FROM lichlamvien_nhanvien WHERE IDNhanVien = ?";
+            $query = "SELECT  ln.Ngay, c.desc , ln.GhiChu
+                        FROM lichlamvien_nhanvien as ln 
+                        LEFT JOIN calamviec as c ON  ln.Ca = c.id 
+                        WHERE IDNhanVien = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$id]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

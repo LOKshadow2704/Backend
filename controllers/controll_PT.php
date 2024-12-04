@@ -239,7 +239,7 @@ class controll_PT extends Control
 
     public function reject_request()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             $auth = $this->authenticate_admin();
             $id = $_GET['id'] ?? null;
             if ($auth) {
