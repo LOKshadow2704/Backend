@@ -110,7 +110,7 @@ class controll_PT extends Control
                     if (count($this->invoice_pt->checkTime($data["StartDate"], $data["EndDate"])) == 0) {
                         $pt = $this->pt->get_One_personalTrainer($data["IDHLV"]);
                         $amount = $pt["GiaThue"] * $interval->h;
-
+                        
                         if ($data["HinhThucThanhToan"] == 1) {
                             $newInvoi = new model_invoice_pt(null, $customer["IDKhachHang"], $data["IDHLV"], $data["StartDate"], $data["EndDate"]);
                             $exeAdd = $newInvoi->add_Invoice();

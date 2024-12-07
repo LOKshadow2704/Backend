@@ -28,11 +28,10 @@ class Schedule_employee_Controller extends Control
 
         $data = json_decode(file_get_contents('php://input'), true);
         $id = $this->modelAuth->get_IDNhanVien($data['employee_username']);
-        if (!isset($data['id'], $data['date'], $data['shift'], $data['note'])) {
+        if (!isset($data['employee_username'], $data['date'], $data['shift'], $data['note'])) {
             $this->sendResponse(400, ['error' => 'Dữ liệu không hợp lệ']);
             return;
         }
-        $id = $data['id'];
         $date = $data['date'];
         $shift = $data['shift'];
         $note = $data['note'];
