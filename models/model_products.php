@@ -152,4 +152,21 @@ class model_product
             return false;
         }
     }
+
+    public function minute_one()
+    {
+        $connect = $this->db1->connect_db();
+        if ($connect) {
+            $stmt = $connect->prepare("UPDATE kho SET SoLuong = SoLuong - 1 WHERE IDSanPham = ?");
+            $result = $stmt->execute();
+            if ($result) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 }
