@@ -19,7 +19,7 @@ require_once(__DIR__ . '/../controllers/schedule_employee.php');
 
 $routes = [
     // Account Routes
-    // Account Routes//
+    // Account Routes
     'account' => [
         '/Backend/signup' => function () {
             $userController = new UserController();
@@ -133,7 +133,6 @@ $routes = [
             $gympackController = new Schedule_employee_Controller();
             $gympackController->get_employee_schedule();
         },
-
     ],
     'admin' => [
         '/Backend/admin/dashboard' => function () {
@@ -180,8 +179,6 @@ $routes = [
             $gympackController = new Schedule_employee_Controller();
             $gympackController->get_all_schedules();
         },
-
-
     ],
     // Product Routes
     'product' => [
