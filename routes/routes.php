@@ -125,7 +125,7 @@ $routes = [
             $gympackController = new controll_Order();
             $gympackController->order_confirm();
         },
-        '/Backend/employee/checkin' => function () { //----Chưa test
+        '/Backend/employee/user/checkin' => function () { //----Chưa test
             $gympackController = new controll_checkin();
             $gympackController->checkin();
         },

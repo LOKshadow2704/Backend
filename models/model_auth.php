@@ -374,12 +374,12 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT IDHLV FROM khachhang WHERE TenDangNhap = ?";
+            $query = "SELECT IDHLV , XacNhan FROM khachhang WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $this->db->disconnect_db($connect);
-            if ($result && $result['IDHLV'] !== null) {
+            if ($result && $result['IDHLV'] !== null && $result['XacNhan'] == 1) {
                 return true;
             } else {
                 return false;
@@ -527,7 +527,8 @@ class model_auth
         }
     }
 
-    public function get_IDNhanVien($username){
+    public function get_IDNhanVien($username)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT 
@@ -543,7 +544,8 @@ class model_auth
         }
     }
 
-    public function get_IDHLV($username){
+    public function get_IDHLV($username)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT 
@@ -558,6 +560,4 @@ class model_auth
             return $result['IDHLV'];
         }
     }
-
-
 }

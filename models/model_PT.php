@@ -11,7 +11,11 @@ class model_pt
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.ChungChi	FROM khachhang as k inner join hlv as p on p.IDHLV = k.IDHLV left join taikhoan as c on c.TenDangNhap = k.TenDangNhap WHERE k.IDHLV IS NOT NULL';
+            $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.ChungChi	
+                      FROM khachhang as k 
+                      inner join hlv as p on p.IDHLV = k.IDHLV 
+                      left join taikhoan as c on c.TenDangNhap = k.TenDangNhap
+                      WHERE k.IDHLV IS NOT NULL AND p.XacNhan = 1';
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -130,7 +134,8 @@ class model_pt
         }
     }
 
-    public function user_request_pt($username){
+    public function user_request_pt($username)
+    {
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = 'SELECT p.IDHLV, c.HoTen, c.DiaChi, c.Email , c.SDT,c.avt, p.DichVu , p.GiaThue , k.IDKhachHang , p.ChungChi	

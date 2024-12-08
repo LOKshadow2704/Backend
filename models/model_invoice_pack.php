@@ -100,5 +100,16 @@ class Model_invoice_pack
 
     }
 
+    public function check_gympack($userID)
+    {
+        $connect = $this->db->connect_db();
+        if ($connect) {
+            $query = "SELECT * FROM hoadonthuegoitap WHERE IDKhachHang = ? AND TrangThaiThanhToan = 'Đã Thanh Toán'";
+            $stmt = $connect->prepare($query);
+            $stmt->execute([$userID]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? true : false;
+        }
+    }
 
 }

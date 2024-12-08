@@ -14,7 +14,7 @@ class Schedule_employee
         $connect = $this->db->connect_db();
         if ($connect) {
             $query = "SELECT  ln.Ngay, c.desc , ln.GhiChu
-                        FROM lichlamvien_nhanvien as ln 
+                        FROM lichlamviec_nhanvien as ln 
                         LEFT JOIN calamviec as c ON  ln.Ca = c.id 
                         WHERE IDNhanVien = ?";
             $stmt = $connect->prepare($query);
@@ -35,7 +35,9 @@ class Schedule_employee
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT * FROM lichlamvien_nhanvien"; 
+            $query = "SELECT * FROM lichlamviec_nhanvien as sch 
+                      LEFT JOIN (SELECT a.TenDangNhap, a.SDT , e.ID , a.HoTen FROM taikhoan as a LEFT JOIN nhanvien as e ON a.TenDangNhap = e.TenDangNhap) 
+                      as nv ON sch.IDNhanVien = nv.ID"; 
             $stmt = $connect->prepare($query);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -50,7 +52,7 @@ class Schedule_employee
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "INSERT INTO lichlamvien_nhanvien (`IDNhanVien`, `Ngay`, `Ca`, `GhiChu` ) VALUES (?, ?, ?, ?)";
+            $query = "INSERT INTO lichlamviec_nhanvien (`IDNhanVien`, `Ngay`, `Ca`, `GhiChu` ) VALUES (?, ?, ?, ?)";
             $stmt = $connect->prepare($query);
             $result = $stmt->execute([$id, $date, $shift, $note]);
             if ($result) {

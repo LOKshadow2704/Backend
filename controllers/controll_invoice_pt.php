@@ -39,17 +39,9 @@ class controll_invoice_pt extends Control
     public function payment_check()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-            $jwt = trim(str_replace('Bearer ', '', $jwt));
-            $agent = "";
+            $auth = $this->authenticate_user();
             $data = json_decode(file_get_contents('php://input'), true);
-            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
-                $agent = "MOBILE_GOATFITNESS";
-            } else {
-                $agent = "WEB";
-            }
-            $verify = $this->jwt->verifyJWT($jwt, $agent);
-            if ($verify) {
+            if ($auth) {
                 $payment = new Controll_payment();
                 $payment_data = $payment->getPaymentLinkInformation($data['orderCode']);
                 $result = $payment->verifyPaymentWebhookData($payment_data);
