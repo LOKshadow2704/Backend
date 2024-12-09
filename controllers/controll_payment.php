@@ -16,12 +16,15 @@ class Controll_payment extends PayOS
             $YOUR_DOMAIN = getenv('host_order_mobile');
             switch ($type) {
                 case "personal_trainer":
+                    $type_id = "pt";
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/PersonalTrainer/Payment";
                     break;
                 case "gympack":
+                    $type_id = "gp";
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/PackGym/Payment";
                     break;
                 case "product":
+                    $type_id = "pd";
                     $callback_url = $YOUR_DOMAIN . "/Home/tabs/Products/Payment";
                     break;
             }
@@ -29,11 +32,17 @@ class Controll_payment extends PayOS
             $YOUR_DOMAIN = getenv('host_order');
             switch ($type) {
                 case "product":
+                    $type_id = "pd";
                     $callback_url = $YOUR_DOMAIN . "/Order/Payment";
+                    break;
                 case "personal_trainer":
+                    $type_id = "pt";
                     $callback_url = $YOUR_DOMAIN . "/GY/Payment";
+                    break;
                 case "gympack":
+                    $type_id = "gp";
                     $callback_url = $YOUR_DOMAIN . "/PT/Payment";
+                    break;
             }
         }
         $data = [

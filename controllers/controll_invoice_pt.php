@@ -72,7 +72,7 @@ class controll_invoice_pt extends Control
             if ($auth) {
                 $username = $this->jwt->getUserName();
                 $id = $this->modelAuth->get_IDHLV($username);
-                $result = $this->model_invoice->get_invoiceByPT($id);  // Lấy thông tin PT theo tên đăng nhập
+                $result = $this->model_invoice->get_invoiceByPT($id);
                 if ($result) {
                     http_response_code(200);
                     echo json_encode($result);
