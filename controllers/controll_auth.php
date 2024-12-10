@@ -5,7 +5,8 @@ require_once(__DIR__ . '/control.php');
 
 class AuthController extends Control
 {
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
     }
     public function login()
@@ -27,32 +28,38 @@ class AuthController extends Control
             session_regenerate_id(true);
             $this->modelAuth->savePHPSESSID($username, session_id());
             if ($_SERVER['HTTP_USER_AGENT'] === 'MOBILE_GOATFITNESS') {
-                $csrf = $this->jwt->generateCSRFToken();
-                if (!isset($_SESSION["csrf_token"])) {
-                    $_SESSION["csrf_token"] = [];
-                }
-                if (!isset($_SESSION["csrf_token"][$username]) || !is_array($_SESSION["csrf_token"][$username])) {
-                    $_SESSION["csrf_token"][$username] = [];
-                }
-                $_SESSION["csrf_token"][$username][$_SERVER['HTTP_USER_AGENT']] = $csrf;
-                $payload = $this->createPayload($username);
-                $token = $this->jwt->generateJWT($payload, $_SERVER['HTTP_USER_AGENT']);
-                $refreshToken = $this->jwt->createRefreshToken($username, 'MOBILE');
-                $this->sendResponse(200, [
-                    'message' => 'Đăng nhập thành công',
-                    'access_token' => $token,
-                    'refresh_token' => $refreshToken,
-                    'phpsessid' => session_id(),
-                    'user' => $this->modelAuth->AccountInfo($username),
-                ]);
+                $agent = 'MOBILE_GOATFITNESS';
+                $divice = 'MOBILE';
             } else {
-                $this->createSession($username);
-                $this->sendResponse(200, [
-                    'message' => 'Đăng nhập thành công',
-                    'user' => $this->modelAuth->AccountInfo($username)
-                ]);
-                // MOBILE
+                $agent = 'WEB';
+                $divice = 'WEB';
             }
+            $csrf = $this->jwt->generateCSRFToken();
+            if (!isset($_SESSION["csrf_token"])) {
+                $_SESSION["csrf_token"] = [];
+            }
+            if (!isset($_SESSION["csrf_token"][$username]) || !is_array($_SESSION["csrf_token"][$username])) {
+                $_SESSION["csrf_token"][$username] = [];
+            }
+            $_SESSION["csrf_token"][$username][$agent] = $csrf;
+            $payload = $this->createPayload($username);
+            $token = $this->jwt->generateJWT($payload, $agent);
+            $refreshToken = $this->jwt->createRefreshToken($username, $divice);
+            $this->sendResponse(200, [
+                'message' => 'Đăng nhập thành công',
+                'access_token' => $token,
+                'refresh_token' => $refreshToken,
+                'phpsessid' => session_id(),
+                'user' => $this->modelAuth->AccountInfo($username),
+            ]);
+            // } else {
+            //     $this->createSession($username);
+            //     $this->sendResponse(200, [
+            //         'message' => 'Đăng nhập thành công',
+            //         'user' => $this->modelAuth->AccountInfo($username)
+            //     ]);
+            //     // MOBILE
+            // }
         } else {
             $this->sendResponse(400, ['error' => 'Kiểm tra lại thông tin']);
         }

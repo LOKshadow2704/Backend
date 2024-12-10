@@ -24,9 +24,9 @@ class Control
         $_SESSION["csrf_token"][$username]["WEB"] = $csrf;
         $payload = $this->createPayload($username);
         $token = $this->jwt->generateJWT($payload, "WEB");
-        setcookie("jwt", $token, time() + 36000, "/");
-        setcookie("refresh_token", $newRefreshToken, time() + 86400 * 30, "/");
-        setcookie("PHPSESSID", session_id(), time() + 36000, "/");
+        // setcookie("jwt", $token, time() + 36000, "/");
+        // setcookie("refresh_token", $newRefreshToken, time() + 86400 * 30, "/");
+        // setcookie("PHPSESSID", session_id(), time() + 36000, "/");
     }
 
     protected function clearSession($username)
@@ -78,17 +78,6 @@ class Control
             }
         }
         return null;
-    }
-
-    protected function setSessionID($username)
-    {
-        $Session = $this->modelAuth->checkPHPSESSID($username);
-        if (!empty($Session) && !is_null($Session[0]['phpsessid'])) {
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-            session_id($Session[0]['phpsessid']);
-        }
     }
 
     public function authenticate_employee($requiredRole = 2)

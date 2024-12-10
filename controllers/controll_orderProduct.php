@@ -122,9 +122,8 @@ class controll_Order extends Control
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $auth = $this->authenticate_user();
-            $jwt = $this->jwt->get_JWT();
             if ($auth) {
-                $username = $this->jwt->getUserName($jwt);
+                $username = $this->jwt->getUserName();
                 $userId = $this->modelAuth->getIDKhachhang($username);
                 $result_Purchase = $this->model_order->get_All_Purchase($userId);
                 if (empty($result_Purchase)) {
