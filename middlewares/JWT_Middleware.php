@@ -78,14 +78,15 @@ class JWT
         $refreshToken = hash('sha256', $randomString);
         $newExpiryDate = date('Y-m-d H:i:s', time() + 3600 * 24 * 30);
         $old_token = $this->model_rt->getToken($username, $agent);
-        if (!$old_token['refresh_token']) {
+        $old_token = $old_token['refresh_token'];
+        if (!is_array($old_token) || empty($old_token['refresh_token'])) {
             $this->model_rt->saveToken($username, $refreshToken, $newExpiryDate, $agent);
             return $refreshToken;
         }
         $check_token = $this->model_rt->getTokenByToken($old_token['refresh_token'], $username);
         if (!empty($check_token)) {
             return false;
-        }else{
+        } else {
             return $refreshToken;
         }
     }
