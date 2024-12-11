@@ -249,9 +249,7 @@ class controll_Order extends Control
                     //     $cart->deleteItem($item['IDSanPham'], $cusID);
                     // }
                 } elseif ($result["status"] == "CANCELLED") {
-                    $this->model_order->
                     $this->model_order->delete_order($payment_data["data"]["orderCode"]);
-                    $this->model_product->minute_one();
                 }
                 http_response_code(200);
                 echo json_encode(['status' => $result["status"]]);
