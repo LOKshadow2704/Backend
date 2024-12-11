@@ -82,8 +82,11 @@ class JWT
             $this->model_rt->saveToken($username, $refreshToken, $newExpiryDate, $agent);
             return $refreshToken;
         }
-        if ($this->model_rt->getTokenByToken($old_token['refresh_token'], $username)) {
+        $check_token = $this->model_rt->getTokenByToken($old_token['refresh_token'], $username);
+        if (!empty($check_token)) {
             return false;
+        }else{
+            return $refreshToken;
         }
     }
 
