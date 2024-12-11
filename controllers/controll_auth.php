@@ -45,6 +45,10 @@ class AuthController extends Control
             $payload = $this->createPayload($username);
             $token = $this->jwt->generateJWT($payload, $agent);
             $refreshToken = $this->jwt->createRefreshToken($username, $divice);
+            if(!$refreshToken){
+                $this->sendResponse(403, ['error' => 'Đã có phiên đăng nhập khác']);
+                return;
+            }
             $this->sendResponse(200, [
                 'message' => 'Đăng nhập thành công',
                 'access_token' => $token,
@@ -52,6 +56,7 @@ class AuthController extends Control
                 'phpsessid' => session_id(),
                 'user' => $this->modelAuth->AccountInfo($username),
             ]);
+            return;
             // } else {
             //     $this->createSession($username);
             //     $this->sendResponse(200, [
@@ -62,6 +67,7 @@ class AuthController extends Control
             // }
         } else {
             $this->sendResponse(400, ['error' => 'Kiểm tra lại thông tin']);
+            return;
         }
     }
 

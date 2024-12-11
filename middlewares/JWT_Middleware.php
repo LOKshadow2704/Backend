@@ -51,7 +51,6 @@ class JWT
             if (!hash_equals($encodedSignature, $expectedSignature)) {
                 return false;
             }
-
             if (isset($payload['exp'])) {
                 $currentTime = time();
                 if ($payload['exp'] - $currentTime < 300) {
@@ -72,14 +71,20 @@ class JWT
         return $payloadArray['role'] ?? null;
     }
 
-    public function createRefreshToken(string $username, $agent): ?string
+    public function createRefreshToken(string $username, $agent)
     {
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $randomString = bin2hex(random_bytes(32));
         $refreshToken = hash('sha256', $randomString);
         $newExpiryDate = date('Y-m-d H:i:s', time() + 3600 * 24 * 30);
-        $this->model_rt->saveToken($username, $refreshToken, $newExpiryDate, $agent);
-        return $refreshToken;
+        $old_token = $this->model_rt->getToken($username, $agent);
+        if (!$old_token['refresh_token']) {
+            $this->model_rt->saveToken($username, $refreshToken, $newExpiryDate, $agent);
+            return $refreshToken;
+        }
+        if ($this->model_rt->getTokenByToken($old_token['refresh_token'], $username)) {
+            return false;
+        }
     }
 
 
@@ -99,7 +104,8 @@ class JWT
         return $payloadArray['username'] ?? null;
     }
 
-    public function get_JWT(){
+    public function get_JWT()
+    {
         return $this->jwt;
     }
 
