@@ -374,7 +374,7 @@ class model_auth
     {
         $connect = $this->db->connect_db();
         if ($connect) {
-            $query = "SELECT IDHLV , XacNhan FROM khachhang WHERE TenDangNhap = ?";
+            $query = "SELECT khachhang.IDHLV , hlv.XacNhan FROM khachhang LEFT JOIN hlv ON khachhang.IDHLV = hlv.IDHLV WHERE TenDangNhap = ?";
             $stmt = $connect->prepare($query);
             $stmt->execute([$username]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
