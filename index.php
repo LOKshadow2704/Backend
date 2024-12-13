@@ -5,8 +5,8 @@ header("Access-Control-Allow-Origin: http://localhost:3000");
 header('Access-Control-Allow-Credentials: true');
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept,X-CSRF-Token,Authorization,PHPSESSID");
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // Xử lý yêu cầu OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
