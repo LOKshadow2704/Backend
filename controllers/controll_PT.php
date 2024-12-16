@@ -14,22 +14,20 @@ class controll_PT extends Control
         $this->invoice_pt = new model_invoice_pt();
         parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
     }
+
     public function getAll_personalTrainer()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             $result = $this->pt->get_All_pt();
             if ($result) {
-                http_response_code(200);
-                echo json_encode($result);
+                $this->sendResponse(200, $result);
                 return;
             } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Không tìm thấy dữ liệu']);
+                $this->sendResponse(404, ['error' => 'Không tìm thấy dữ liệu']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -40,17 +38,14 @@ class controll_PT extends Control
             $ptID = $_GET['IDHLV'];
             $result = $this->pt->get_One_personalTrainer($ptID);
             if ($result) {
-                http_response_code(200);
-                echo json_encode($result);
+                $this->sendResponse(200, $result);
                 return;
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Không truy cập được dữ liệu']);
+                $this->sendResponse(403, ['error' => 'Không truy cập được dữ liệu']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -76,50 +71,45 @@ class controll_PT extends Control
 
                     // Kiểm tra nếu thời gian bắt đầu không được trễ hơn giờ hiện tại
                     if ($startDate < $currentDate || ($startDate->format('H') < $currentHour && $startDate < $currentDate)) {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Thời gian bắt đầu không hợp lệ.']);
-                        exit();
+                        $this->sendResponse(403, ['error' => 'Thời gian bắt đầu không hợp lệ.']);
+                        return;
                     }
 
                     // Kiểm tra thời gian kết thúc phải cách thời gian bắt đầu ít nhất 1 giờ
                     $interval = $startDate->diff($endDate);
                     if ($interval->h < 1) {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Ngày kết thúc phải cách ngày bắt đầu ít nhất 1 giờ.']);
-                        exit();
+                        $this->sendResponse(403, ['error' => 'Ngày kết thúc phải cách ngày bắt đầu ít nhất 1 giờ.']);
+                        return;
                     }
 
                     // Kiểm tra thời gian kết thúc phải trong ngày
                     $endHour = $endDate->format('H');
                     if ($endHour > 22) {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Giờ kết thúc phải không quá 22:00.']);
-                        exit();
+                        $this->sendResponse(403, ['error' => 'Giờ kết thúc phải không quá 22:00.']);
+                        return;
                     }
 
                     // Kiểm tra giờ làm việc trong khoảng 8:00 - 22:00
                     $startHour = $startDate->format('H');
                     if ($startHour < 8 || $startHour > 22) {
-                        echo $startHour;
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Giờ làm việc phải từ 8:00 đến 22:00.']);
-                        exit();
+                        $this->sendResponse(403, ['error' => 'Giờ làm việc phải từ 8:00 đến 22:00.']);
+                        return;
                     }
 
                     // Kiểm tra trùng lặp giờ
                     if (count($this->invoice_pt->checkTime($data["StartDate"], $data["EndDate"])) == 0) {
                         $pt = $this->pt->get_One_personalTrainer($data["IDHLV"]);
                         $amount = $pt["GiaThue"] * $interval->h;
-                        
+
                         if ($data["HinhThucThanhToan"] == 1) {
                             $newInvoi = new model_invoice_pt(null, $customer["IDKhachHang"], $data["IDHLV"], $data["StartDate"], $data["EndDate"]);
                             $exeAdd = $newInvoi->add_Invoice();
                             if ($exeAdd) {
-                                http_response_code(200);
-                                echo json_encode(['message' => 'Đăng ký thành công, Thanh toán sau khi tập!']);
+                                $this->sendResponse(200, ['message' => 'Đăng ký thành công, Thanh toán sau khi tập!']);
+                                return;
                             } else {
-                                http_response_code(403);
-                                echo json_encode(['error' => 'Không thực hiện được hành động']);
+                                $this->sendResponse(403, ['error' => 'Không thực hiện được hành động']);
+                                return;
                             }
                         } elseif ($data["HinhThucThanhToan"] == 2) {
                             $newInvoi = new model_invoice_pt(null, $customer["IDKhachHang"], $data["IDHLV"], $data["StartDate"], $data["EndDate"]);
@@ -133,33 +123,28 @@ class controll_PT extends Control
                                 $payment_data['phone'] = $user['SDT'];
                                 $ExePayment = $payment->create($payment_data, $this->get_agent(), "personal_trainer");
                                 if ($ExePayment) {
-                                    http_response_code(200);
-                                    echo json_encode(['success' => $ExePayment["checkoutUrl"]]);
+                                    $this->sendResponse(200, ['success' => $ExePayment["checkoutUrl"]]);
+                                    return;
                                 } else {
-                                    http_response_code(403);
-                                    echo json_encode(['error' => 'Không thể thanh toán']);
+                                    $this->sendResponse(403, ['error' => 'Không thể thanh toán']);
+                                    return;
                                 }
                             }
                         }
                     } else {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'HLV này đã có lịch tại thời điểm bạn đăng ký']);
+                        $this->sendResponse(403, ['error' => 'HLV này đã có lịch tại thời điểm bạn đăng ký']);
                         return;
-
                     }
                 } else {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Đây là tài khoản của bạn!']);
+                    $this->sendResponse(403, ['error' => 'Đây là tài khoản của bạn!']);
                     return;
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -209,8 +194,8 @@ class controll_PT extends Control
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
@@ -229,11 +214,12 @@ class controll_PT extends Control
                     return;
                 }
             } else {
-
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
@@ -252,11 +238,12 @@ class controll_PT extends Control
                     return;
                 }
             } else {
-
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+                return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
@@ -278,11 +265,8 @@ class controll_PT extends Control
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
-
-
-
 }

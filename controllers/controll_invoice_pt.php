@@ -6,11 +6,13 @@ require_once(__DIR__ . '/control.php');
 class controll_invoice_pt extends Control
 {
     private $model_invoice;
+    
     public function __construct()
     {
         $this->model_invoice = new model_invoice_pt();
         parent::__construct($_SERVER['HTTP_AUTHORIZATION'] ?? null);
     }
+
     public function get_practiceSchedule()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
@@ -18,21 +20,19 @@ class controll_invoice_pt extends Control
             if ($auth) {
                 $username = $this->jwt->getUserName();
                 $cusID = $this->modelAuth->getIDKhachhang($username);
-                $result = $this->model_invoice->get_invoiceByCustomer($cusID);  // Lấy thông tin PT theo tên đăng nhập
+                $result = $this->model_invoice->get_invoiceByCustomer($cusID);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
+                    $this->sendResponse(200, $result);
                 } else {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Không có thông tin thuê PT']);
+                    $this->sendResponse(403, ['error' => 'Không có thông tin thuê PT']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
+            return;
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
 
@@ -50,17 +50,14 @@ class controll_invoice_pt extends Control
                 } elseif ($result["status"] == "CANCELLED") {
                     $this->model_invoice->delete_invoice($payment_data["data"]["orderCode"]);
                 }
-                http_response_code(200);
-                echo json_encode(['status' => $result["status"]]);
+                $this->sendResponse(200, ['status' => $result["status"]]);
                 return;
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -74,22 +71,17 @@ class controll_invoice_pt extends Control
                 $id = $this->modelAuth->get_IDHLV($username);
                 $result = $this->model_invoice->get_invoiceByPT($id);
                 if ($result) {
-                    http_response_code(200);
-                    echo json_encode($result);
+                    $this->sendResponse(200, $result);
                 } else {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Không có lịch dạy']);
+                    $this->sendResponse(403, ['error' => 'Không có lịch dạy']);
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
             }
+            return;
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+            return;
         }
     }
-
-
-
 }
