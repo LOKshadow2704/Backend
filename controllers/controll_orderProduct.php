@@ -6,9 +6,9 @@ require_once(__DIR__ . "/../models/model_orderInfo.php");
 require_once(__DIR__ . "/../models/model_warehouse.php");
 require_once(__DIR__ . "/../models/model_cart.php");
 require_once(__DIR__ . '/control.php');
+
 class controll_Order extends Control
 {
-
     protected $model_product;
     protected $model_order;
     protected $model_order_info;
@@ -34,9 +34,9 @@ class controll_Order extends Control
         } else {
             return ['error' => 'Sản phẩm không tồn tại'];
         }
-
         return $amount;
     }
+
     public function Order()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
@@ -47,54 +47,48 @@ class controll_Order extends Control
                 foreach ($data["products"] as $index => $item) {
                     $check_quantity = $this->check_conditions($item);
                     if (is_array($check_quantity) && isset($check_quantity['error'])) {
-                        http_response_code(403);
-                        echo json_encode($check_quantity);
+                        $this->sendResponse(403, $check_quantity);
                         return;
                     } else {
                         if (is_numeric($check_quantity)) {
                             $amount += $check_quantity;
                         } else {
-                            http_response_code(500);
-                            echo json_encode(['error' => 'Đã xảy ra lỗi không xác định.']);
+                            $this->sendResponse(500, ['error' => 'Đã xảy ra lỗi không xác định.']);
                             return;
                         }
                     }
                 }
+
                 $username = $this->jwt->getUserName($this->jwt->get_JWT());
                 $cusID = $this->modelAuth->getIDKhachhang($username);
                 $data_user = $this->modelAuth->AccountInfo($username);
                 $oder = new model_order("", $cusID, $data["HinhThucThanhToan"], $data_user["DiaChi"], $amount);
-                //Thêm đơn hàng
                 $ExeOrder = $oder->Order();
-                //Thêm chi tiết đơn hàng
+
                 foreach ($data["products"] as $item) {
                     $oderinfo = new model_orderInfo($ExeOrder, $item["IDSanPham"], $item["SoLuong"]);
                     $oderinfo->Order();
                     $updateQuantity = new Model_warehouse($item["IDSanPham"]);
                     $updateQuantity->updateQuantity($item["SoLuong"]);
                     if (!$oderinfo || !$updateQuantity) {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Không thể mua sản phẩm']);
+                        $this->sendResponse(403, ['error' => 'Không thể mua sản phẩm']);
                         return;
                     }
                 }
-                //Thao tác thanh toán
+
                 if ($ExeOrder && $data["HinhThucThanhToan"] == 2) {
                     $payment_data = [];
                     $payment_data['ID'] = $ExeOrder;
                     $payment_data['amount'] = $amount;
                     $payment_data['name'] = $data_user['HoTen'];
                     $payment_data['phone'] = $data_user['SDT'];
-                    //Tạo link thanh toán
                     $payment = new Controll_payment();
                     $ExePayment = $payment->create($payment_data, $this->get_agent(), "product");
                     if ($ExePayment) {
-                        http_response_code(200);
-                        echo json_encode(["success" => $ExePayment['checkoutUrl']]);
+                        $this->sendResponse(200, ["success" => $ExePayment['checkoutUrl']]);
                         return;
                     } else {
-                        http_response_code(403);
-                        echo json_encode(['error' => 'Không thể thanh toán ' . $ExePayment]);
+                        $this->sendResponse(403, ['error' => 'Không thể thanh toán ' . $ExePayment]);
                         return;
                     }
                 } elseif ($ExeOrder && $data["HinhThucThanhToan"] == 1) {
@@ -102,18 +96,15 @@ class controll_Order extends Control
                     foreach ($data["products"] as $item) {
                         $cart->deleteItem($item['IDSanPham'], $cusID);
                     }
-                    http_response_code(200);
-                    echo json_encode(['message' => 'Mua sản phẩm thành công']);
+                    $this->sendResponse(200, ['message' => 'Mua sản phẩm thành công']);
                     return;
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -127,8 +118,7 @@ class controll_Order extends Control
                 $userId = $this->modelAuth->getIDKhachhang($username);
                 $result_Purchase = $this->model_order->get_All_Purchase($userId);
                 if (empty($result_Purchase)) {
-                    http_response_code(200);
-                    echo json_encode(["orders" => "Không có đơn hàng mới"]);
+                    $this->sendResponse(200, ["orders" => "Không có đơn hàng mới"]);
                     return;
                 }
                 $groupedOrders = [];
@@ -147,17 +137,14 @@ class controll_Order extends Control
                     $orderDetails["orderInfo"] = $result_orderInfo;
                     $groupedOrders[$item["IDDonHang"]] = $orderDetails;
                 }
-                http_response_code(200);
-                echo json_encode(["orders" => array_values($groupedOrders)]);
+                $this->sendResponse(200, ["orders" => array_values($groupedOrders)]);
                 return;
             } else {
-                http_response_code(400);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(400, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -169,8 +156,7 @@ class controll_Order extends Control
             if ($auth) {
                 $result_Purchase = $this->model_order->get_Purchase_unconfimred();
                 if (empty($result_Purchase)) {
-                    http_response_code(200);
-                    echo json_encode(["orders" => "Không có đơn hàng mới"]);
+                    $this->sendResponse(200, ["orders" => "Không có đơn hàng mới"]);
                     return;
                 }
                 $groupedOrders = [];
@@ -189,17 +175,14 @@ class controll_Order extends Control
                     $orderDetails["orderInfo"] = $result_orderInfo;
                     $groupedOrders[$item["IDDonHang"]] = $orderDetails;
                 }
-                http_response_code(200);
-                echo json_encode(["orders" => array_values($groupedOrders)]);
+                $this->sendResponse(200, ["orders" => array_values($groupedOrders)]);
                 return;
             } else {
-                http_response_code(400);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(400, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -212,21 +195,18 @@ class controll_Order extends Control
             if ($auth) {
                 $result_Purchase = $this->model_order->Purchase_confirm($data["IDDonHang"]);
                 if ($result_Purchase) {
-                    http_response_code(200);
-                    exit();
+                    $this->sendResponse(200, []);
+                    return;
                 } else {
-                    http_response_code(403);
-                    echo json_encode(['error' => 'Cập nhật không thành công']);
+                    $this->sendResponse(403, ['error' => 'Cập nhật không thành công']);
                     return;
                 }
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -242,26 +222,17 @@ class controll_Order extends Control
                 $result = $payment->verifyPaymentWebhookData($payment_data);
                 if ($result["status"] == "PAID") {
                     $this->model_order->UpdatePaymentStatus($payment_data["data"]["orderCode"]);
-                    // $cart = new model_cart();
-                    // $username = $this->jwt->getUserName($jwt);
-                    // $cusID = $this->modelAuth->getIDKhachhang($username);
-                    // foreach ($data["products"] as $item) {
-                    //     $cart->deleteItem($item['IDSanPham'], $cusID);
-                    // }
                 } elseif ($result["status"] == "CANCELLED") {
                     $this->model_order->delete_order($payment_data["data"]["orderCode"]);
                 }
-                http_response_code(200);
-                echo json_encode(['status' => $result["status"]]);
+                $this->sendResponse(200, ['status' => $result["status"]]);
                 return;
             } else {
-                http_response_code(403);
-                echo json_encode(['error' => 'Lỗi xác thực']);
+                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
                 return;
             }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
+            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
             return;
         }
     }
@@ -276,5 +247,4 @@ class controll_Order extends Control
             return false;
         }
     }
-
 }
