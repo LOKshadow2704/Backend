@@ -30,79 +30,189 @@ class controll_gympack extends Control
         }
     }
 
+    // public function Register()
+    // {
+    //     if ($_SERVER['REQUEST_METHOD'] === "POST") {
+    //         $auth = $this->authenticate_user();
+    //         if ($auth) {
+    //             $data = json_decode(file_get_contents('php://input'), true);
+    //             $agent = $_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS" ? "MOBILE_GOATFITNESS" : "WEB";
+    //             $username = $this->jwt->getUserName($this->jwt->getJWT());
+
+    //             $cusID = $this->modelAuth->getIDKhachhang($username);
+    //             $invoice_pack = new Model_invoice_pack();
+    //             $check = $invoice_pack->get_PackofCustomer($cusID);
+    //             $user = $this->modelAuth->AccountInfo($username);
+    //             $pack_register_info = $this->model_gympack->get_Info_Pack($data['IDGoiTap']);
+    //             $amount = $pack_register_info['Gia'];
+
+    //             if (count($check) == 1) {
+    //                 $this->sendResponse(403, ['error' => "Đã tồn tại gói tập"]);
+    //                 return;
+    //             } elseif (count($check) == 0) {
+    //                 if ($data["HinhThucThanhToan"] == 1) {
+    //                     $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
+    //                     $result = $new_Invoice->add_Invoice();
+    //                     if ($result) {
+    //                         $this->sendResponse(200, ['message' => "Đăng ký thành công! Vui lòng tới chi nhánh gần nhất để thanh toán"]);
+    //                         return;
+    //                     } else {
+    //                         $this->sendResponse(403, ['error' => "Đăng ký không thành công!"]);
+    //                         return;
+    //                     }
+    //                 } elseif ($data["HinhThucThanhToan"] == 2) {
+    //                     $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
+    //                     $result = $new_Invoice->add_Invoice();
+    //                     if ($result) {
+    //                         $payment_data = [
+    //                             'ID' => $result,
+    //                             'amount' => $amount,
+    //                             'name' => $user['HoTen'],
+    //                             'phone' => $user['SDT']
+    //                         ];
+    //                         $payment = new Controll_payment();
+    //                         $ExePayment = $payment->create($payment_data, $agent, "gympack");
+    //                         if ($ExePayment) {
+    //                             $this->sendResponse(200, ['success' => $ExePayment['checkoutUrl']]);
+    //                             return;
+    //                         } else {
+    //                             $this->sendResponse(403, ['error' => 'Không thể thanh toán']);
+    //                             return;
+    //                         }
+    //                     } else {
+    //                         $this->sendResponse(403, ['error' => "Đăng ký không thành công!"]);
+    //                         return;
+    //                     }
+    //                 }
+    //             }
+    //         } else {
+    //             $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
+    //             return;
+    //         }
+    //     } else {
+    //         $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+    //         return;
+    //     }
+    // }
+
     public function Register()
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            $auth = $this->authenticate_user();
-            if ($auth) {
-                $data = json_decode(file_get_contents('php://input'), true);
-                $agent = $_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS" ? "MOBILE_GOATFITNESS" : "WEB";
-                $username = $this->jwt->getUserName($this->jwt->getJWT());
-
+            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $data = json_decode(file_get_contents('php://input'), true);
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
+            if ($verify) {
+                $username = $this->jwt->getUserName($jwt);
                 $cusID = $this->modelAuth->getIDKhachhang($username);
                 $invoice_pack = new Model_invoice_pack();
                 $check = $invoice_pack->get_PackofCustomer($cusID);
                 $user = $this->modelAuth->AccountInfo($username);
                 $pack_register_info = $this->model_gympack->get_Info_Pack($data['IDGoiTap']);
                 $amount = $pack_register_info['Gia'];
-
                 if (count($check) == 1) {
-                    $this->sendResponse(403, ['error' => "Đã tồn tại gói tập"]);
-                    return;
+                    http_response_code(403);
+                    echo json_encode(['error' => "Đã tồn tại gói tập"]);
                 } elseif (count($check) == 0) {
                     if ($data["HinhThucThanhToan"] == 1) {
                         $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
                         $result = $new_Invoice->add_Invoice();
                         if ($result) {
-                            $this->sendResponse(200, ['message' => "Đăng ký thành công! Vui lòng tới chi nhánh gần nhất để thanh toán"]);
-                            return;
+                            http_response_code(200);
+                            echo json_encode(['message' => "Đăng ký thành công! Vui lòng tới chi nhánh gần nhất để thanh toán"]);
                         } else {
-                            $this->sendResponse(403, ['error' => "Đăng ký không thành công!"]);
-                            return;
+                            http_response_code(403);
+                            echo json_encode(['error' => "Đăng ký không thành công!"]);
                         }
                     } elseif ($data["HinhThucThanhToan"] == 2) {
                         $new_Invoice = new Model_invoice_pack($data["IDGoiTap"], $cusID, $pack_register_info["ThoiHan"]);
                         $result = $new_Invoice->add_Invoice();
                         if ($result) {
-                            $payment_data = [
-                                'ID' => $result,
-                                'amount' => $amount,
-                                'name' => $user['HoTen'],
-                                'phone' => $user['SDT']
-                            ];
+                            $payment_data = [];
+                            $payment_data['ID'] = $result;
+                            $payment_data['amount'] = $amount;
+                            $payment_data['name'] = $user['HoTen'];
+                            $payment_data['phone'] = $user['SDT'];
                             $payment = new Controll_payment();
                             $ExePayment = $payment->create($payment_data, $agent, "gympack");
                             if ($ExePayment) {
-                                $this->sendResponse(200, ['success' => $ExePayment['checkoutUrl']]);
-                                return;
+                                http_response_code(200);
+                                echo json_encode(['success' => $ExePayment['checkoutUrl']]);
                             } else {
-                                $this->sendResponse(403, ['error' => 'Không thể thanh toán']);
-                                return;
+                                http_response_code(403);
+                                echo json_encode(['error' => 'Không thể thanh toán']);
                             }
                         } else {
-                            $this->sendResponse(403, ['error' => "Đăng ký không thành công!"]);
-                            return;
+                            http_response_code(403);
+                            echo json_encode(['error' => "Đăng ký không thành công!"]);
                         }
                     }
                 }
             } else {
-                $this->sendResponse(403, ['error' => 'Lỗi xác thực']);
-                return;
+                http_response_code(403);
+                echo json_encode(['error' => 'Lỗi xác thực']);
             }
         } else {
-            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
-            return;
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
+
+    // public function get_UserPack()
+    // {
+    //     if ($_SERVER['REQUEST_METHOD'] === "GET") {
+    //         $auth = $this->authenticate_user();
+    //         if ($auth) {
+    //             $username = $this->jwt->getUserName($this->jwt->getJWT());
+    //             $cusID = $this->modelAuth->getIDKhachhang($username);
+
+    //             $invoice_pack = new Model_invoice_pack();
+    //             $check = $invoice_pack->get_PackofCustomer($cusID);
+    //             if (count($check) == 1) {
+    //                 $info = $this->model_gympack->get_Info_Pack($check[0]["IDGoiTap"]);
+    //                 if ($info) {
+    //                     $check[0]["info"] = $info;
+    //                     $check = $check[0];
+    //                     $this->sendResponse(200, $check);
+    //                     return;
+    //                 } else {
+    //                     $this->sendResponse(403, ['error' => 'Không thể lấy thông tin']);
+    //                     return;
+    //                 }
+    //             } else {
+    //                 $this->sendResponse(403, ['error' => 'Chưa đăng ký gói tập']);
+    //                 return;
+    //             }
+    //         }
+    //     } else {
+    //         $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
+    //         return;
+    //     }
+    // }
+
 
     public function get_UserPack()
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
-            $auth = $this->authenticate_user();
-            if ($auth) {
-                $username = $this->jwt->getUserName($this->jwt->getJWT());
+            $jwt = $_SERVER['HTTP_AUTHORIZATION'];
+            $jwt = trim(str_replace('Bearer ', '', $jwt));
+            $agent = "";
+            if ($_SERVER['HTTP_USER_AGENT'] == "MOBILE_GOATFITNESS") {
+                $agent = "MOBILE_GOATFITNESS";
+            } else {
+                $agent = "WEB";
+            }
+            $verify = $this->jwt->verifyJWT($jwt, $agent);
+            if ($verify) {
+                $username = $this->jwt->getUserName($jwt);
                 $cusID = $this->modelAuth->getIDKhachhang($username);
-
+                //Kiểm tra tồn tại gói tập của user chưa
                 $invoice_pack = new Model_invoice_pack();
                 $check = $invoice_pack->get_PackofCustomer($cusID);
                 if (count($check) == 1) {
@@ -110,22 +220,25 @@ class controll_gympack extends Control
                     if ($info) {
                         $check[0]["info"] = $info;
                         $check = $check[0];
-                        $this->sendResponse(200, $check);
-                        return;
+                        http_response_code(200);
+                        echo json_encode($check);
                     } else {
-                        $this->sendResponse(403, ['error' => 'Không thể lấy thông tin']);
-                        return;
+                        http_response_code(403);
+                        echo json_encode(['error' => 'Không thể lấy thông tin']);
                     }
+
                 } else {
-                    $this->sendResponse(403, ['error' => 'Chưa đăng ký gói tập']);
-                    return;
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Chưa đăng ký gói tập']);
                 }
             }
         } else {
-            $this->sendResponse(404, ['error' => 'Đường dẫn không tồn tại']);
-            return;
+            http_response_code(404);
+            echo json_encode(['error' => 'Đường dẫn không tồn tại']);
         }
     }
+
+
 
     public function register_packByEmployee()
     {
